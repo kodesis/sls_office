@@ -123,7 +123,8 @@
                         <th>Serial Number</th>
                         <th>Unit</th>
                         <th>Stok Awal</th>
-                        <th>IN/OUT</th>
+                        <th>IN</th>
+                        <th>OUT</th>
                         <th>Stok Akhir</th>
                       </tr>
                     </thead>
@@ -161,7 +162,24 @@
                           </td>
                           <td><?= $r['asset_id'] ? $asset['nama_asset'] : "-"; ?></td>
                           <td><?= $r['stok_awal'] ?></td>
-                          <td><?= $r['jml'] ?></td>
+                          <td>
+                            <?php
+                            if ($r['jenis'] == 'IN' or $r['jenis'] == 'REPAIR IN') {
+                              echo $r['jml'];
+                            } else {
+                              echo "-";
+                            }
+                            ?>
+                          </td>
+                          <td>
+                            <?php
+                            if ($r['jenis'] == 'OUT' or $r['jenis'] == 'REPAIR OUT') {
+                              echo $r['jml'];
+                            } else {
+                              echo "-";
+                            }
+                            ?>
+                          </td>
                           <td><?= $r['stok_akhir'] ?></td>
                         </tr>
                         <?php if (count($report) < 1) { ?>
@@ -193,7 +211,8 @@
                       <th>Jenis</th>
                       <th>Unit</th>
                       <th>Stok Awal</th>
-                      <th>IN/OUT</th>
+                      <th>IN</th>
+                      <th>OUT</th>
                       <th>Stok Akhir</th>
                     </tr>
                   </thead>
@@ -229,7 +248,24 @@
                         <td><?= $r['jenis']; ?></td>
                         <td><?= $r['asset_id'] ? $asset['nama_asset'] : "-"; ?></td>
                         <td><?= $r['stok_awal'] ?></td>
-                        <td><?= $r['jml'] ?></td>
+                        <td>
+                          <?php
+                          if ($r['jenis'] == 'IN' or $r['jenis'] == 'REPAIR IN') {
+                            echo $r['jml'];
+                          } else {
+                            echo "-";
+                          }
+                          ?>
+                        </td>
+                        <td>
+                          <?php
+                          if ($r['jenis'] == 'OUT' or $r['jenis'] == 'REPAIR OUT') {
+                            echo $r['jml'];
+                          } else {
+                            echo "-";
+                          }
+                          ?>
+                        </td>
                         <td><?= $r['stok_akhir'] ?></td>
                       </tr>
                     <?php } ?>
