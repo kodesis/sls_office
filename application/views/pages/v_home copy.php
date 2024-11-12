@@ -68,17 +68,6 @@
             <h2>Total penggunaan spare part</h2>
             <hr>
         </div> -->
-        <div class="row justify-content-center" style="margin-bottom: 30px;">
-            <div class="col-md-4 col-sm-6 col-xs-12">
-                <label for="">Pilih Asset</label>
-                <select class="form-control" name="id_asset" id="id_asset" onchange="onChangeAsset()">
-                    <option value="ALL">ALL</option>
-                    <?php foreach ($asset as $a) : ?>
-                        <option value="<?= $a->Id ?>"><?= $a->Id ?> - <?= $a->nama_asset ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
         <div class="row justify-content-center">
             <div class="col-md-4 col-sm-6 col-xs-12">
                 <div id="chart_div_spare_part"></div>
@@ -331,140 +320,111 @@
     <br><br>
 </div>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<link rel="stylesheet" href="<?= base_url(); ?>assets/select2/css/select2.min.css">
-<script type="text/javascript" src="<?= base_url(); ?>assets/select2/js/select2.min.js"></script>
+<?php
+// Initialize the data array with headers for Google Charts
+$chart_data_spare_part = [['Month', 'Biaya Total Spare Parts']];
+
+// Loop through the database results and populate the chart data array
+foreach ($total_sparepart_perbulan as $row) {
+    $chart_data_spare_part[] = [$row->month_year, (int)$row->total_sum];
+}
+
+$chart_data_tonase = [['Month', 'Total Tonase']];
+
+// Loop through the database results and populate the chart data array
+foreach ($total_tonase as $row) {
+    $chart_data_tonase[] = [$row->month_year, (int)$row->total_sum];
+}
+
+$chart_data_bbm = [['Month', 'Total Biaya BBM']];
+
+// Loop through the database results and populate the chart data array
+foreach ($total_bbm as $row) {
+    $chart_data_bbm[] = [$row->month_year, (int)$row->total_sum];
+}
+?>
 <script type="text/javascript">
     // Load the Google Charts API
     google.charts.load('current', {
         'packages': ['corechart']
     });
 
-    function matchStart(params, data) {
-        // If there are no search terms, return all data
-        if ($.trim(params.term) === '') {
-            return data;
-        }
-
-        // Convert both option text and search term to uppercase for case-insensitive comparison
-        if (data.text.toUpperCase().includes(params.term.toUpperCase())) {
-            return data;
-        }
-
-        // Return `null` if the term does not match any part of the text
-        return null;
-    }
-
-    $(document).ready(function() {
-        $("#id_asset").select2({
-            matcher: matchStart,
-            placeholder: "Select an asset", // Optional: adds a placeholder
-            allowClear: true // Optional: adds a clear option
-        });
-    });
-
-    function onChangeAsset() {
-        // Get the selected asset ID from the dropdown
-        var id = document.getElementById('id_asset').value;
-        // Call drawChart_sparepart with the selected ID
-        drawChart_sparepart(id);
-        drawChart_tonase(id);
-        drawChart_bbm(id);
-    }
-
     // Callback function to draw the chart
     google.charts.setOnLoadCallback(drawChart_sparepart);
 
-    function drawChart_sparepart(id = "ALL") {
-        // id = id || "null";
-        fetch('Home/get_sparepart_data/' + id)
-            .then(response => response.json())
-            .then(data => {
-                // Format data with headers required by Google Charts
-                var chartData = google.visualization.arrayToDataTable(data);
+    function drawChart_sparepart() {
+        // Create the data table using PHP
+        var data = google.visualization.arrayToDataTable(<?php echo json_encode($chart_data_spare_part); ?>);
 
-                // Set chart options with the adjusted hAxis and vAxis
-                var options = {
-                    title: 'Biaya Total Spare Parts Per Month',
-                    chartArea: {
-                        width: '50%'
-                    },
-                    hAxis: {
-                        title: 'Month', // Interpret first column as a string for categories
-                    },
-                    vAxis: {
-                        title: 'Biaya Total Spare Parts',
-                        minValue: 0
-                    }
-                };
+        // Set chart options
+        var options = {
+            title: 'Biaya Total Spare Parts Per Month',
+            chartArea: {
+                width: '50%'
+            },
+            hAxis: {
+                title: 'Biaya Total Spare Parts',
+                minValue: 0
+            },
+            vAxis: {
+                title: 'Month'
+            }
+        };
 
-                // Instantiate and draw the chart
-                var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_spare_part'));
-                chart.draw(chartData, options);
-            })
-            .catch(error => console.error('Error fetching chart data:', error));
+        // Instantiate and draw the chart
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_spare_part'));
+        chart.draw(data, options);
     }
-
-
 
     google.charts.setOnLoadCallback(drawChart_tonase);
 
-    function drawChart_tonase(id = "ALL") {
-        fetch('Home/get_tonase_data/' + id)
-            .then(response => response.json())
-            .then(data => {
-                // Format data with headers required by Google Charts
-                var chartData = google.visualization.arrayToDataTable(data);
+    function drawChart_tonase() {
+        // Create the data table using PHP
+        var data = google.visualization.arrayToDataTable(<?php echo json_encode($chart_data_tonase); ?>);
 
-                // Set chart options with the adjusted hAxis and vAxis
-                var options = {
-                    title: 'Total HM Per Month',
-                    chartArea: {
-                        width: '50%'
-                    },
-                    hAxis: {
-                        title: 'Month', // Interpret first column as a string for categories
-                    },
-                    vAxis: {
-                        title: 'Total Hm',
-                        minValue: 0
-                    }
-                };
+        // Set chart options
+        var options = {
+            title: 'Total Tonase Per Month',
+            chartArea: {
+                width: '50%'
+            },
+            hAxis: {
+                title: 'Total Tonase',
+                minValue: 0
+            },
+            vAxis: {
+                title: 'Month'
+            }
+        };
 
-                // Instantiate and draw the chart
-                var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_tonase'));
-                chart.draw(chartData, options);
-            })
-            .catch(error => console.error('Error fetching chart data:', error));
+        // Instantiate and draw the chart
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_tonase'));
+        chart.draw(data, options);
     }
 
     google.charts.setOnLoadCallback(drawChart_bbm);
 
-    function drawChart_bbm(id = "ALL") {
-        fetch('Home/get_bbm_data/' + id)
-            .then(response => response.json())
-            .then(data => {
-                // Format data with headers required by Google Charts
-                var chartData = google.visualization.arrayToDataTable(data);
+    function drawChart_bbm() {
+        // Create the data table using PHP
+        var data = google.visualization.arrayToDataTable(<?php echo json_encode($chart_data_bbm); ?>);
 
-                // Set chart options with the adjusted hAxis and vAxis
-                var options = {
-                    title: 'Biaya Total BBM Per Month',
-                    chartArea: {
-                        width: '50%'
-                    },
-                    hAxis: {
-                        title: 'Month', // Interpret first column as a string for categories
-                    },
-                    vAxis: {
-                        title: 'Biaya Total BBM',
-                        minValue: 0
-                    }
-                };
+        // Set chart options
+        var options = {
+            title: 'Biaya Total BBM Per Month',
+            chartArea: {
+                width: '50%'
+            },
+            hAxis: {
+                title: 'Biaya Total BBM',
+                minValue: 0
+            },
+            vAxis: {
+                title: 'Month'
+            }
+        };
 
-                // Instantiate and draw the chart
-                var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_bbm'));
-                chart.draw(chartData, options);
-            })
-            .catch(error => console.error('Error fetching chart data:', error));
+        // Instantiate and draw the chart
+        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_bbm'));
+        chart.draw(data, options);
     }
 </script>

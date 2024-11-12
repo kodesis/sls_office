@@ -6,6 +6,7 @@
             <ul class="nav child_menu">
                 <li><a href="<?php echo base_url(); ?>home">Dashboard</a></li>
                 <!-- <li><a href="<?php echo base_url(); ?>home/banner">Banner</a></li> -->
+                <li><a href="<?php echo base_url(); ?>Detail_No_Lambung/list">Detail No Lambung</a></li>
             </ul>
         </li>
         <?php $a = $this->session->userdata('level');
@@ -239,6 +240,12 @@
                             <a href="<?= base_url(); ?>pengajuan/approval_direksi">Approval Direksi</a>
                         </li>
                     <?php } ?>
+                    <li>
+                        <a href="<?= base_url(); ?>ritasi/list">Ritasi</a>
+                    </li>
+                    <li>
+                        <a href="<?= base_url(); ?>bbm/list">BBM</a>
+                    </li>
                 </ul>
             </li>
         <?php } ?>
