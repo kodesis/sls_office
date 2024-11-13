@@ -200,9 +200,9 @@
                         </li>
                     <?php }
                     if (strpos($a, '809') !== false) { ?>
-                        <li>
+                        <!-- <li>
                             <a href="<?= base_url(); ?>financial/showreport">Neraca L/R (current)</a>
-                        </li>
+                        </li> -->
                         <li>
                             <a href="<?= base_url(); ?>financial/reportByDate">Neraca L/R (by date)</a>
                         </li>
