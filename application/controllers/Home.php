@@ -207,7 +207,7 @@ class Home extends CI_Controller
   }
   public function get_sparepart_data($id = "ALL")
   {
-    $this->db->select('SUM(harga) as total_sum, DATE_FORMAT(tanggal, "%M %Y") as month_year');
+    $this->db->select('SUM(jml * harga) as total_sum, DATE_FORMAT(tanggal, "%M %Y") as month_year');
     $this->db->from('working_supply');
     $this->db->join('item_list', 'working_supply.item_id = item_list.id');
     $this->db->where('item_list.coa', '1106002');
@@ -230,6 +230,7 @@ class Home extends CI_Controller
     } else {
       $chart_data_spare_part[] = [0, 0];
     }
+
     echo json_encode($chart_data_spare_part);
   }
   public function get_tonase_data($id = "ALL")

@@ -22,33 +22,38 @@ class M_detail_no_lambung extends CI_Model
   }
   public function get_detail_ritasi_spare_part($id, $bulan, $tahun)
   {
-    $this->db->select('SUM(b.jml) as jumlah_part, SUM(b.harga) as harga_part');
-    // Join SparePart
+    $this->db->select('b.harga, b.jml');
     $this->db->from('working_supply as b');
     $this->db->join('item_list c', 'b.item_id = c.id', 'left');
 
     // Where Clause Sparepart
-    $this->db->where('c.coa', '1106002');
     $this->db->where('b.jenis', 'out');
-
-    // Cari data Sesuai Tanggal
     $this->db->where('MONTH(b.tanggal)', $bulan);
     $this->db->where('YEAR(b.tanggal)', $tahun);
     $this->db->where('b.asset_id', $id);
 
-    $this->db->group_by('b.asset_id');
     $this->db->order_by('b.tanggal', 'DESC');
-    $spare_part = $this->db->get()->row();
-    if (!empty($spare_part)) {
+    $spare_parts = $this->db->get()->result();
+
+    $jumlah_part = 0;
+    $harga_part_total = 0;
+
+    if (!empty($spare_parts)) {
+      foreach ($spare_parts as $spare_part) {
+        $harga_part_total += $spare_part->harga * $spare_part->jml;
+        $jumlah_part += $spare_part->jml;
+      }
+
       return [
-        'jumlah_part' => $spare_part->jumlah_part,
-        'harga_part' => $spare_part->harga_part,
+        'jumlah_part' => $jumlah_part,
+        'harga_part' => $harga_part_total,
+      ];
+    } else {
+      return [
+        'jumlah_part' => 0,
+        'harga_part' => 0,
       ];
     }
-    return [
-      'jumlah_part' => 0,
-      'harga_part' => 0
-    ];
   }
   public function get_detail_ritasi_tonase($id, $bulan, $tahun)
   {

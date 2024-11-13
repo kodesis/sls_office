@@ -9,7 +9,7 @@
                     <div class="row">
                         <form class="form-horizontal form-label-left" method="POST" action="<?= base_url('financial/save_saldo_awal') ?>">
                             <div class="col-md-3 col-xs-12 mt-3">
-                                <input type="month" class="form-control" name="periode" value="<?= $this->input->post('periode') ?>">
+                                <input type="text" class="form-control datepicker" data-date-format="mm/yyyy" id="periode" name="periode" value="<?= $this->input->post('periode') ?>">
                             </div>
                             <div class="col-md-1 col-xs-12 mt-3 text-right">
                                 <button type="submit" class="btn btn-primary">Closing EoM</button>
@@ -53,3 +53,14 @@
         </div>
     </div>
 </div>
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/css/bootstrap-datepicker.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js"></script>
+
+<script>
+    $('#periode').datepicker({
+        format: "yyyy-mm", // Format to show month and year only
+        minViewMode: "months", // Show only month and year in the picker
+        autoclose: true // Close the picker after selection
+    });
+</script>

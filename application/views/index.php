@@ -38,6 +38,11 @@
 	<link rel="stylesheet" href="<?= base_url('assets/css/mystyle.css') ?>">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.css" rel="stylesheet" />
 
+	<!-- Load Flatpickr and the Month Select Plugin -->
+	<!-- <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.9"></script>
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.9/dist/plugins/monthSelect/index.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.9/dist/plugins/monthSelect/style.css"> -->
+
 	<style>
 		.col-xs-3 {
 			width: 25%;

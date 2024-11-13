@@ -29,9 +29,7 @@ class Financial extends CI_Controller
     //     $this->M_Logging->add_log($user_id, $action, $tableName, $record_id);
     // }
 
-    public function index()
-    {
-    }
+    public function index() {}
 
     public function financial_entry($jenis = NULL)
     {
@@ -1466,7 +1464,8 @@ class Financial extends CI_Controller
         $last_periode = new DateTime($periode);
         $last_periode = $last_periode->modify('-1 month');
         $last_periode = $last_periode->format('Y-m');
-
+        // print_r($last_periode);
+        // exit;
 
         $getLastPeriod = $this->m_coa->cek_saldo_awal($last_periode);
 
