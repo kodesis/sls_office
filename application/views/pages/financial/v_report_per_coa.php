@@ -28,16 +28,18 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-3 col-xs-12">
+                            <div class="col-md-2 col-xs-12">
                                 <label for="tgl_dari" class="form-label">Dari</label>
                                 <input type="date" class="form-control" name="tgl_dari" value="<?= $this->input->post('tgl_dari') ?>">
                             </div>
-                            <div class="col-md-3 col-xs-12">
+                            <div class="col-md-2 col-xs-12">
                                 <label for="tgl_sampai" class="form-label">Sampai</label>
                                 <input type="date" class="form-control" name="tgl_sampai" value="<?= $this->input->post('tgl_sampai') ?>">
                             </div>
-                            <div class="col-md-1 col-xs-12">
-                                <button type="submit" class="btn btn-primary" style="margin-top: 24px;">Lihat</button>
+                            <div class="col-md-3 col-xs-12">
+                                <button type="submit" name="action" value="lihat" class="btn btn-primary" style="margin-top: 24px;">Lihat</button>
+                                <button type="submit" name="action" value="excel" class="btn btn-success" style="margin-top: 24px;">Unduh Excel</button>
+
                             </div>
                         </form>
                         <div class="table-responsive mt-3">
@@ -57,7 +59,7 @@
                                             <th class="text-center">CoA</th>
                                             <th class="text-center">Debit</th>
                                             <th class="text-center">Kredit</th>
-                                            <th class="text-center">Saldo Akhir</th>
+                                            <!-- <th class="text-center">Saldo Akhir</th> -->
                                             <th class="text-center">Keterangan</th>
                                         </tr>
                                     <?php
@@ -91,7 +93,7 @@
                                                     <td><?= $a->akun_debit ?> - <?= $nama_debit ?></td>
                                                     <td class="text-right"><?= number_format($a->jumlah_debit) ?></td>
                                                     <td class="text-right"><?= '0' ?></td>
-                                                    <td class="text-right"><?= number_format($a->saldo_debit) ?></td>
+                                                    <!-- <td class="text-right"><?= number_format($a->saldo_debit) ?></td> -->
                                                     <td style="white-space: pre-line;"><?= $a->keterangan ?></td>
                                                 </tr>
                                                 <tr>
@@ -100,7 +102,7 @@
                                                     <td><?= $a->akun_kredit ?> - <?= $nama_kredit ?></td>
                                                     <td class="text-right"><?= '0' ?></td>
                                                     <td class="text-right"><?= number_format($a->jumlah_kredit) ?></td>
-                                                    <td class="text-right"><?= number_format($a->saldo_kredit) ?></td>
+                                                    <!-- <td class="text-right"><?= number_format($a->saldo_kredit) ?></td> -->
                                                     <td style="white-space: pre-line;"><?= $a->keterangan ?></td>
                                                 </tr>
                                             <?php
@@ -150,16 +152,19 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-xs-12">
+                                <div class="col-md-2 col-xs-12">
                                     <label for="tgl_invoice" class="form-label">Dari</label>
                                     <input type="date" class="form-control" name="tgl_dari" value="">
                                 </div>
-                                <div class="col-md-3 col-xs-12">
+                                <div class="col-md-2 col-xs-12">
                                     <label for="tgl_invoice" class="form-label">Sampai</label>
                                     <input type="date" class="form-control" name="tgl_sampai" value="<?= date('Y-m-d') ?>">
                                 </div>
-                                <div class="col-md-1 col-xs-12">
-                                    <button type="submit" class="btn btn-primary" style="margin-top: 24px;">Lihat</button>
+                                <div class="col-md-3 col-xs-12">
+                                    <!-- <button type="submit" class="btn btn-primary" style="margin-top: 24px;">Lihat</button> -->
+
+                                    <button type="submit" name="action" value="lihat" class="btn btn-primary" style="margin-top: 24px;">Lihat</button>
+                                    <button type="submit" name="action" value="excel" class="btn btn-success" style="margin-top: 24px;">Unduh Excel</button>
                                 </div>
                             </form>
                         </div>

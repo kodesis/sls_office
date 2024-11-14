@@ -162,3 +162,25 @@ function intToRoman($num)
 
 	return $result;
 }
+
+function sum_nominal($nominal)
+{
+	$decoded = json_decode($nominal, true);
+	if (is_array($decoded)) {
+		return array_sum(array_map('intval', $decoded));
+	} else {
+		return json_decode($nominal);
+	}
+	return intval($nominal);
+}
+
+function show_coa($coa)
+{
+	$decoded = json_decode($coa, true);
+	if (is_array($decoded)) {
+		return implode(", ", $decoded);
+	} else {
+		return json_decode($coa);
+	}
+	return intval($coa);
+}
