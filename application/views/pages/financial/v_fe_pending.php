@@ -52,8 +52,10 @@
                                     <th>No.</th>
                                     <th>Tanggal</th>
                                     <th>User input</th>
+                                    <th>CoA Debit</th>
+                                    <th>CoA Kredit</th>
                                     <th>Nominal</th>
-                                    <!-- <th>Keterangan</th> -->
+                                    <th>Keterangan</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -67,7 +69,10 @@
                                             <td><a href="<?= base_url('financial/show/' . $i['slug']) ?>"><?= $i['slug'] ?></a></td>
                                             <td><?= format_indo($i['tanggal_transaksi']) ?></td>
                                             <td><?= isset($i['created_by_name']) ? $i['created_by_name'] : 'N/A' ?></td>
-                                            <td><?= $i['keterangan'] ?></td>
+                                            <td><?= show_coa($i['coa_debit']) ?></td>
+                                            <td><?= show_coa($i['coa_kredit']) ?></td>
+                                            <td class="text-right"><?= number_format(sum_nominal($i['nominal'])) ?></td>
+                                            <td style="word-wrap: break-word;"><?= $i['keterangan'] ?></td>
                                             <td>
                                                 <?php
                                                 if ($i['status_approval'] == '1') {
@@ -301,7 +306,6 @@
                                                         </div>
                                                     </div>
                                                 </div>
-
                                             </td>
                                         </tr>
 
@@ -310,7 +314,7 @@
                                 } else {
                                     ?>
                                     <tr>
-                                        <td colspan="7">Tidak ada data yang ditampilkan</td>
+                                        <td colspan="8">Tidak ada data yang ditampilkan</td>
                                     </tr>
                                 <?php
                                 } ?>

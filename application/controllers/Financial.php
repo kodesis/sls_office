@@ -29,7 +29,9 @@ class Financial extends CI_Controller
     //     $this->M_Logging->add_log($user_id, $action, $tableName, $record_id);
     // }
 
-    public function index() {}
+    public function index()
+    {
+    }
 
     public function financial_entry($jenis = NULL)
     {
@@ -883,10 +885,12 @@ class Financial extends CI_Controller
             'coas' => $this->m_coa->list_coa(),
         ];
 
+        $action = $this->input->post('action');
         $no_coa = $this->input->post('no_coa');
 
+
         if ($no_coa) {
-            $this->prepareCoaReport($data, $no_coa);
+            $this->prepareCoaReport($data, $no_coa, $action);
         } else {
             $data['title'] = "Report CoA";
             $data['pages'] = "pages/financial/v_report_per_coa";
@@ -931,7 +935,7 @@ class Financial extends CI_Controller
         $this->load->view('index', $data);
     }
 
-    private function prepareCoaReport(&$data, $no_coa)
+    private function prepareCoaReport(&$data, $no_coa, $action)
     {
         $from = $this->input->post('tgl_dari');
         $to = $this->input->post('tgl_sampai');
@@ -948,10 +952,150 @@ class Financial extends CI_Controller
 
         $data['detail_coa'] = $this->m_coa->getCoa($no_coa);
 
-        $data['title'] = $no_coa;
-        $data['pages'] = "pages/financial/v_report_per_coa";
+        if ($action == "lihat") {
+            $data['title'] = $no_coa;
+            $data['pages'] = "pages/financial/v_report_per_coa";
 
-        $this->load->view('index', $data);
+            $this->load->view('index', $data);
+        } else if ($action == "excel") {
+
+            require_once(APPPATH . 'libraries/PHPExcel/IOFactory.php');
+
+            $excel = new PHPExcel();
+
+            $excel->getProperties()->setCreator('Kribo Express')
+                ->setLastModifiedBy('Kribo Express')
+                ->setTitle("Revenue")
+                ->setSubject("Revenue")
+                ->setDescription("Revenue from " . $from . ' to ' . $to)
+                ->setKeywords("Revenue");
+
+            // Buat sebuah variabel untuk menampung pengaturan style dari header tabel
+            $style_col = [
+                'font' => ['bold' => true],
+                'alignment' => ['horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER, 'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER],
+                'borders' => ['top' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'right' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'bottom' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'left' => ['style'  => PHPExcel_Style_Border::BORDER_THIN]]
+            ];
+
+            $style_row = [
+                'alignment' => ['vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER],
+                'borders' => ['top' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'right' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'bottom' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'left' => ['style'  => PHPExcel_Style_Border::BORDER_THIN]]
+            ];
+
+            // bagian header
+            if ($no_coa == 'ALL') {
+                $headers = [
+                    'A' => "No.",
+                    'B' => "Tanggal",
+                    'C' => "CoA",
+                    'D' => "Debit",
+                    'E' => "Kredit",
+                    'F' => "Keterangan"
+                ];
+            } else {
+
+                $headers = [
+                    'A' => "No.",
+                    'B' => "Tanggal",
+                    'C' => "Debit",
+                    'D' => "Kredit",
+                    'E' => "Saldo akhir",
+                    'F' => "Keterangan"
+                ];
+            }
+
+            $sheet = $excel->setActiveSheetIndex(0);
+            foreach ($headers as $columnID => $header) {
+                $sheet->setCellValue($columnID . '1', $header);
+                $sheet->getColumnDimension($columnID)->setAutoSize(true);
+            }
+
+            $no = 1;
+            $numrow = 2;
+
+            $coa = $data['coa'];
+            $detail_coa = $data['detail_coa'];
+            if ($no_coa == 'ALL') {
+                foreach ($coa as $t) {
+                    // Mendapatkan nama akun debit dan kredit
+                    $nama_debit = $this->m_coa->getCoa($t->akun_debit)['nama_perkiraan'];
+                    $nama_kredit = $this->m_coa->getCoa($t->akun_kredit)['nama_perkiraan'];
+
+                    // Baris untuk akun debit
+                    $excel->setActiveSheetIndex(0)->setCellValue('A' . $numrow, $no);
+                    $excel->setActiveSheetIndex(0)->setCellValue('B' . $numrow, format_indo($t->tanggal));
+                    $excel->setActiveSheetIndex(0)->setCellValue('C' . $numrow, $t->akun_debit . ' - ' . $nama_debit);
+                    $excel->setActiveSheetIndex(0)->setCellValue('D' . $numrow, number_format($t->jumlah_debit));
+                    $excel->setActiveSheetIndex(0)->setCellValue('E' . $numrow, '0');
+                    $excel->setActiveSheetIndex(0)->setCellValue('F' . $numrow, $t->keterangan);
+
+                    foreach (range('A', 'F') as $columnID) {
+                        $excel->getActiveSheet()->getStyle($columnID . $numrow)->applyFromArray($style_row);
+                    }
+
+                    $no++;
+                    $numrow++;
+
+                    // Baris untuk akun kredit
+                    $excel->setActiveSheetIndex(0)->setCellValue('A' . $numrow, $no);
+                    $excel->setActiveSheetIndex(0)->setCellValue('B' . $numrow, format_indo($t->tanggal));
+                    $excel->setActiveSheetIndex(0)->setCellValue('C' . $numrow, $t->akun_kredit . ' - ' . $nama_kredit);
+                    $excel->setActiveSheetIndex(0)->setCellValue('D' . $numrow, '0');
+                    $excel->setActiveSheetIndex(0)->setCellValue('E' . $numrow, number_format($t->jumlah_kredit));
+                    $excel->setActiveSheetIndex(0)->setCellValue('F' . $numrow, $t->keterangan);
+
+                    foreach (range('A', 'F') as $columnID) {
+                        $excel->getActiveSheet()->getStyle($columnID . $numrow)->applyFromArray($style_row);
+                    }
+
+                    $no++;
+                    $numrow++;
+                }
+
+                // Menambahkan style untuk header
+                $excel->getActiveSheet()->getStyle('A1:F1')->applyFromArray($style_col);
+            } else {
+                foreach ($coa as $t) {
+                    $nominal_debit = ($t->akun_debit == $detail_coa['no_sbb']) ? (($t->jumlah_debit) ? ($t->jumlah_debit) : '0') : '0';
+                    $nominal_kredit = ($t->akun_kredit == $detail_coa['no_sbb']) ? (($t->jumlah_kredit) ? ($t->jumlah_kredit) : '0') : '0';
+                    $saldo_akhir = ($t->akun_kredit == $detail_coa['no_sbb']) ? (($t->saldo_kredit) ? ($t->saldo_kredit) :  '0') : (($t->saldo_debit) ? ($t->saldo_debit) : '0');
+
+                    $excel->setActiveSheetIndex(0)->setCellValue('A' . $numrow, $no);
+                    $excel->setActiveSheetIndex(0)->setCellValue('B' . $numrow, format_indo($t->tanggal));
+                    $excel->setActiveSheetIndex(0)->setCellValue('C' . $numrow, $nominal_debit);
+                    $excel->setActiveSheetIndex(0)->setCellValue('D' . $numrow, $nominal_kredit);
+                    $excel->setActiveSheetIndex(0)->setCellValue('E' . $numrow, $saldo_akhir);
+                    $excel->setActiveSheetIndex(0)->setCellValue('F' . $numrow, $t->keterangan);
+
+                    foreach (range('A', 'F') as $columnID) {
+                        $excel->getActiveSheet()->getStyle($columnID . $numrow)->applyFromArray($style_row);
+                    }
+
+                    $no++; // Tambah 1 setiap kali looping
+                    $numrow++; // Tambah 1 setiap kali looping
+                }
+                $excel->getActiveSheet()->getStyle('A1:F1')->applyFromArray($style_col);
+            }
+
+
+
+            // Redirect output to a client’s web browser (Excel5)
+            header('Content-Type: application/vnd.ms-excel');
+            header('Content-Disposition: attachment;filename="Arus kas ' . $no_coa . ' ' . $from . ' to ' . $to . '.xls"');
+            header('Cache-Control: max-age=0');
+            // If you're serving to IE 9, then the following may be needed
+            header('Cache-Control: max-age=1');
+
+            // If you're serving to IE over SSL, then the following may be needed
+            header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+            header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+            header('Pragma: public'); // HTTP/1.0
+
+            $objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
+            $objWriter->save('php://output');
+
+            exit;
+        }
     }
 
     public function simpanNeraca()
