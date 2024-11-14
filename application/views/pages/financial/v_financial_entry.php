@@ -1,3 +1,11 @@
+<style>
+    .btn-warning:hover {
+        color: #fff !important;
+        background-color: #ec971f !important;
+        border-color: #d58512 !important;
+    }
+</style>
+
 <div class="right_col" role="main">
     <div class="clearfix"></div>
 
@@ -10,6 +18,17 @@
                         <small>Please fill below</small>
                     </h2>
                     <ul class="nav navbar-right panel_toolbox">
+                        <li class="dropdown">
+                            <a class="btn btn-warning btn-sm" href="<?= base_url('assets/format/format_data.xlsx') ?>" download style="font-size: 12px;padding: 5px 10px;color: white;">
+                                Download Format Data
+                            </a>
+                        </li>
+                        <li class="dropdown">
+                            <button class="btn btn-success btn-sm" data-toggle="modal"
+                                data-target="#upload_modal" type="button" style="color: white;">
+                                Upload Data
+                            </button>
+                        </li>
                         <li class="dropdown">
                             <button class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false" style="color: white;">
                                 Input Multiple
@@ -82,6 +101,33 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="upload_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Upload Financial Entry</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <form id="upload_file_fe">
+                        <div class="col-md-12 col-sm-12  offset-md-3 mt-3">
+                            <label for="" class="form-label">File Format Data</label>
+                            <input class="form-control" type="file" name="format_data" id="format_data">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="upload_fe()">Save</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="<?php echo base_url(); ?>assets/vendors/jquery/dist/jquery.min.js"></script>
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <link rel="stylesheet" href="<?= base_url(); ?>assets/select2/css/select2.min.css">
@@ -155,4 +201,130 @@
             }
         }
     });
+
+    function upload_fe() {
+        const ttlnamaValue = $('#format_data').val();
+
+
+        if (!ttlnamaValue) {
+            swal.fire({
+                customClass: 'slow-animation',
+                icon: 'error',
+                showConfirmButton: false,
+                title: 'Kolom File Tidak Boleh Kosong',
+                timer: 1500
+            });
+        } else {
+            const swalWithBootstrapButtons = Swal.mixin({
+                customClass: {
+                    InputEvent: 'form-control',
+                    confirmButton: 'btn btn-success',
+                    cancelButton: 'btn btn-danger'
+                },
+                buttonsStyling: false
+            })
+
+            swalWithBootstrapButtons.fire({
+                title: 'Ingin Menambahkan Data?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, Tambahkan',
+                cancelButtonText: 'Tidak',
+                reverseButtons: true
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    var url;
+                    var formData;
+                    url = "<?php echo site_url('Financial/upload_financial_entry') ?>";
+
+                    // window.location = url_base;
+                    var formData = new FormData($("#upload_file_fe")[0]);
+                    let accumulatedResponse = ""; // Variable to accumulate the response
+
+                    $.ajax({
+                        url: url,
+                        type: "POST",
+                        dataType: "text", // Change to 'text' to handle server-sent events
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        beforeSend: function() {
+                            // Show the progress dialog before sending the request
+                            Swal.fire({
+                                title: 'Uploading...',
+                                html: `
+                <progress id="progressBar" value="0" max="100" style="width: 100%;"></progress>
+                <div id="progressText" style="margin-top: 10px; font-weight: bold;">0/0 Data</div>
+            `,
+                                allowOutsideClick: false,
+                                showConfirmButton: false
+                            });
+                        },
+                        xhrFields: {
+                            onprogress: function(e) {
+                                // Read the response text for progress updates
+                                accumulatedResponse += e.currentTarget.responseText; // Accumulate responses
+
+                                var response = e.currentTarget.responseText.trim().split('\n');
+
+                                // Loop through each line to find progress data
+                                response.forEach(function(line) {
+                                    try {
+                                        var progressData = JSON.parse(line.replace("data: ", ""));
+                                        if (progressData.progress) {
+                                            $("#progressBar").val(progressData.progress);
+                                            $("#progressText").text(`${progressData.currentRow}/${progressData.totalRows} Data`);
+                                        }
+                                    } catch (error) {
+                                        console.error("Error parsing progress data:", error);
+                                    }
+                                });
+                            },
+                        },
+                        success: function(data) {
+                            try {
+                                // Attempt to parse the final response
+                                var finalResponse = JSON.parse(accumulatedResponse.trim().split('\n').pop()); // Get the last line which should be the status
+                                console.log("Response data:", finalResponse); // Log final response to see its structure
+                                if (!finalResponse.status) swal.fire('Gagal menyimpan data', 'error');
+                                else {
+
+                                    // document.getElementById('rumahadat').reset();
+                                    // $('#add_modal').modal('hide');
+                                    (JSON.stringify(data));
+                                    // alert(data)
+                                    swal.fire({
+                                        customClass: 'slow-animation',
+                                        icon: 'success',
+                                        showConfirmButton: false,
+                                        title: 'Berhasil Menambahkan Data',
+                                        timer: 3000
+                                    });
+                                    document.getElementById('upload_file_fe').reset(); // Reset the form
+                                    $('#upload_modal').modal('hide'); // Hide the modal
+                                    // location.reload();
+
+                                }
+                            } catch (error) {
+                                // If parsing fails, log the error
+                                console.error("Error parsing final response:", error);
+                                swal.fire('Gagal menyimpan data', 'error');
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            swal.fire('Operation Failed!', errorThrown, 'error');
+                        },
+                        complete: function() {
+                            console.log('Editing job done');
+                        }
+                    });
+
+
+                }
+
+            })
+        }
+    }
 </script>

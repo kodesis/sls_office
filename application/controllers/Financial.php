@@ -1,6 +1,10 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 date_default_timezone_set('Asia/Jakarta');
+require 'vendor/autoload.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Financial extends CI_Controller
 {
@@ -29,9 +33,7 @@ class Financial extends CI_Controller
     //     $this->M_Logging->add_log($user_id, $action, $tableName, $record_id);
     // }
 
-    public function index()
-    {
-    }
+    public function index() {}
 
     public function financial_entry($jenis = NULL)
     {
@@ -148,6 +150,122 @@ class Financial extends CI_Controller
         }
 
         redirect('financial/financial_entry');
+    }
+
+    public function upload_financial_entry()
+    {
+        $this->load->library('upload');
+        // Configure upload settings
+        $config['upload_path'] = FCPATH . 'upload/financial_entry';
+        $config['allowed_types'] = 'xls|xlsx|csv'; // Allowed file types
+
+        // $this->load->library('upload', $config);
+        $this->upload->initialize($config);
+        // Debugging output
+
+
+        if (!$this->upload->do_upload('format_data')) {
+            // If the upload fails, show the error
+            $error = array('error' => $this->upload->display_errors());
+            print_r($error);
+            echo "Upload Path: " . $config['upload_path'];
+            exit; // Stop execution for debugging
+        } else {
+            // Get file info
+            $file_data = $this->upload->data();
+            $file_path = $file_data['full_path']; // Full path of the uploaded file
+
+            // Load the spreadsheet using PhpSpreadsheet
+            try {
+                $spreadsheet = IOFactory::load($file_path);
+                $worksheet = $spreadsheet->getActiveSheet();
+
+
+                $rowCounter = 1; // Start at 1 since the first row (0) is the header
+                // INPUT DATA USER
+                foreach ($worksheet->getRowIterator() as $row) {
+                    // Increment the row counter
+                    $rowCounter++;
+
+                    $totalRows = iterator_count($worksheet->getRowIterator()); // Get the total rows for progress calculation
+                    $totalRows -= 2; // Adjust for headers
+                    $insertedRows = 0; // Initialize inserted rows counter
+                    // Skip the first row (header)
+                    if (
+                        $rowCounter === 2 || $rowCounter === 3
+                    ) {
+                        continue; // Skip processing for the header row
+                    }
+
+                    $cellIterator = $row->getCellIterator();
+                    $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells, even empty ones
+
+                    $data = []; // Create an array to hold row data
+                    foreach ($cellIterator as $cell) {
+                        $data[] = $cell->getValue(); // Get cell value
+                    }
+
+                    // Assuming columns are: 'Nama' in column A, 'kd_peserta' in column B, etc.
+                    $coa_debit = isset($data[0]) ? (string)$data[0] : null; // Force casting to string
+                    $coa_kredit = isset($data[1]) ? (string)$data[1] : null; // Force casting to string
+                    $nominal = isset($data[2]) ? (string)$data[2] : null; // Force casting to string
+                    $tanggal = isset($data[3]) ? $data[3] : null; // Column 
+                    $tanggal = $this->processDate($tanggal);  // Assuming this method processes the date in a specific way
+
+                    $keterangan = isset($data[4]) ? $data[4] : null; // Column 
+
+                    $max_num = $this->m_invoice->select_max_fe();
+                    $bilangan = $max_num['max'] ? $max_num['max'] + 1 : 1;
+                    $no_urut = sprintf("%08d", $bilangan);
+                    $slug = "FE-" . $no_urut;
+
+                    $jenis_fe = "single";
+                    // Cek Data di database
+
+                    $data = [
+                        'coa_debit' => json_encode($coa_debit),
+                        'coa_kredit' => json_encode($coa_kredit),
+                        'nominal' => json_encode($nominal),
+                        'keterangan' => $keterangan,
+                        'tanggal_transaksi' => $tanggal,
+                        'file_path' => (isset($file_path)) ? $file_path : null,
+                        'created_by' => $this->session->userdata('nip'),
+                        'slug' => $slug,
+                        'no_urut' => $bilangan,
+                        'jenis_fe' => $jenis_fe
+                    ];
+                    // echo json_encode(array("status" => True));
+                    $this->db->trans_begin();
+
+                    $this->m_invoice->add_fe($data);
+
+
+                    $insertedRows++;
+                    $progress = round(($insertedRows / $totalRows) * 100);
+                    echo "data: " . json_encode(['progress' => $progress, 'currentRow' => $insertedRows, 'totalRows' => $totalRows]) . "\n\n";
+                    ob_flush();
+                    flush();
+                }
+                echo json_encode(array("status" => True));
+                return;
+            } catch (Exception $e) {
+                // echo 'Error loading file: ', $e->getMessage();
+                echo json_encode(array("status" => False));
+            }
+        }
+    }
+
+    function processDate($dateValue)
+    {
+        if (is_numeric($dateValue)) {
+            // Handle Excel date integer
+            return DateTime::createFromFormat('U', ($dateValue - 25569) * 86400)->format('Y-m-d');
+        } elseif (DateTime::createFromFormat('m/d/Y', $dateValue) !== false) {
+            // Handle string date format
+            return DateTime::createFromFormat('m/d/Y', $dateValue)->format('Y-m-d');
+        }
+        // If the date format is not recognized, return null or handle accordingly
+        return null;
     }
 
     public function fe_pending()
