@@ -10,7 +10,6 @@ class Home extends CI_Controller
     $this->load->helper('url');
     $this->load->model('m_login');
     $this->load->database();
-    $this->cb = $this->load->database('corebank', TRUE);
 
     if ($this->session->userdata('isLogin') == FALSE) {
       redirect('login/login_form');
@@ -60,59 +59,11 @@ class Home extends CI_Controller
       $over_due = $this->db->query("SELECT COUNT(id_detail) as id,a.member FROM task as a left join task_detail as b on(a.id=b.id_task) where b.activity='1' and a.member LIKE '%$nip%' and b.due_date<'$date'")->row_array();
     }
 
-    // Total Penggunaan Sparepart perbulan
-    // $this->db->select('SUM(harga) as total_sum');
-    // $this->db->from('working_supply');
-    // $this->db->join('item_list', 'working_supply.item_id = item_list.id');
-    // $this->db->where('item_list.coa', '1106002');
-    // $this->db->where('working_supply.jenis', 'out');
-    // $total_sparepart = $this->db->get()->row();
-
-    // // Total Penggunaan Sparepart perbulan
-    // $this->db->select('SUM(harga) as total_sum, DATE_FORMAT(tanggal, "%M %Y") as month_year');
-    // $this->db->from('working_supply');
-    // $this->db->join('item_list', 'working_supply.item_id = item_list.id');
-    // $this->db->where('item_list.coa', '1106002');
-    // $this->db->where('working_supply.jenis', 'out');
-    // $this->db->where('tanggal >=', date('Y-m-d', strtotime('-2 months'))); // Limit to last 6 months
-    // $this->db->group_by('month_year');
-    // $this->db->order_by('tanggal', 'ASC');
-    // $total_sparepart_perbulan = $this->db->get()->result();
-
-    // // Total Tonase
-    // $this->cb->select('SUM(hm) as total_sum, DATE_FORMAT(created_at, "%M %Y") as month_year');
-    // $this->cb->from('t_detail_ritasi');
-    // $this->cb->where('created_at >=', date('Y-m-d', strtotime('-2 months'))); // Limit to last 6 months
-    // $this->cb->group_by('month_year');
-    // $this->cb->order_by('created_at', 'ASC');
-    // $total_tonase = $this->cb->get()->result();
-
-    // // Total Penggunaan BBM
-    // $this->db->select('SUM(total_harga) as total_sum, DATE_FORMAT(tanggal, "%M %Y") as month_year');
-    // $this->db->from('bbm');
-    // $this->db->where('nomor_lambung IS NOT NULL');
-    // $this->db->where('nomor_lambung !=', 0);
-    // $this->db->where('tanggal >=', date('Y-m-d', strtotime('-2 months'))); // Limit to last 6 months
-    // $this->db->group_by('month_year');
-    // $this->db->order_by('tanggal', 'ASC');
-    // $total_bbm = $this->db->get()->result();
-
-    // Mobil
-    $this->db->select('Id, nama_asset');
-    $this->db->from('asset_list');
-    $asset = $this->db->get()->result();
-
     $data["open_tello"] = $tello_open;
     $data["pending_tello"] = $tello_pending;
     $data["closed_tello"] = $tello_closed;
     $data["total_tello"] = $total_tello;
     $data["over_due_card"] = $over_due;
-
-    // $data['total_sparepart'] = $total_sparepart;
-    // $data['total_sparepart_perbulan'] = $total_sparepart_perbulan;
-    // $data['total_tonase'] = $total_tonase;
-    // $data['total_bbm'] = $total_bbm;
-    $data['asset'] = $asset;
 
     $data['total'] = $result3;
     $data['count_inbox'] = $result;
@@ -204,105 +155,5 @@ class Home extends CI_Controller
       $this->db->update('utility', $insert);
       redirect('home');
     }
-  }
-  public function get_sparepart_data($id = "ALL")
-  {
-    $this->db->select('SUM(jml * harga) as total_sum, DATE_FORMAT(tanggal, "%M %Y") as month_year');
-    $this->db->from('working_supply');
-    $this->db->join('item_list', 'working_supply.item_id = item_list.id');
-    $this->db->where('item_list.coa', '1106002');
-    $this->db->where('working_supply.jenis', 'out');
-    $this->db->where('tanggal >=', date('Y-m-01', strtotime('-2 months')));
-    if ($id !== "ALL") {
-      $this->db->where('asset_id', $id);
-    }
-    $this->db->group_by('month_year');
-    $this->db->order_by('tanggal', 'ASC');
-
-    $total_sparepart_perbulan = $this->db->get()->result();
-
-    // Prepare data for JSON response with headers
-    $chart_data_spare_part = [['Month', 'Biaya Total Spare Parts']];
-    if (!empty($total_sparepart_perbulan)) {
-      foreach ($total_sparepart_perbulan as $row) {
-        $chart_data_spare_part[] = [$row->month_year, (int)$row->total_sum];
-      }
-    } else {
-      $chart_data_spare_part[] = [0, 0];
-    }
-
-    echo json_encode($chart_data_spare_part);
-  }
-  public function get_tonase_data($id = "ALL")
-  {
-    // $this->cb->select('SUM(hm_awal) as total_hm_awal, SUM(hm_akhir) as total_hm_akhir, SUM(km_awal) as total_km_awal, SUM(hm_akhir) as total_hm_akhir, DATE_FORMAT(tanggal, "%M %Y") as month_year');
-    // $this->cb->from('t_ritasi');
-    // $this->cb->where('tanggal >=', date('Y-m-01', strtotime('-2 months')));
-    // if ($id !== "ALL") {
-    //   $this->cb->where('nomor_lambung', $id);
-    // }
-    // $this->cb->group_by('month_year');
-    // $this->cb->order_by('tanggal', 'ASC');
-
-    // $tonase = $this->cb->get()->result_array();
-
-    // // Prepare data for JSON response with headers
-    // $chart_data_tonase = [['Month', 'Total HM']]; // Header row
-    // if (!empty($tonase)) {
-    //   foreach ($tonase as $row) {
-    //     $total_hm = (int)$row['total_hm_akhir'] - (int)$row['total_hm_awal'];
-    //     $chart_data_tonase[] = [$row['month_year'], $total_hm];
-    //   }
-    $this->cb->select('SUM(harga) as total_harga, DATE_FORMAT(tanggal, "%M %Y") as month_year');
-    $this->cb->from('t_ritasi');
-    $this->cb->where('tanggal >=', date('Y-m-01', strtotime('-2 months')));
-    if ($id !== "ALL") {
-      $this->cb->where('nomor_lambung', $id);
-    }
-    $this->cb->group_by('month_year');
-    $this->cb->order_by('tanggal', 'ASC');
-
-    $tonase = $this->cb->get()->result_array();
-
-    // Prepare data for JSON response with headers
-    $chart_data_tonase = [[
-      'Month',
-      'Total Harga'
-    ]]; // Header row
-    if (!empty($tonase)) {
-      foreach ($tonase as $row) {
-        $total_haraga = (int)$row['total_harga'];
-        $chart_data_tonase[] = [$row['month_year'], $total_haraga];
-      }
-    } else {
-      $chart_data_tonase[] = [0, 0];
-    }
-    echo json_encode($chart_data_tonase);
-  }
-  public function get_bbm_data($id = "ALL")
-  {
-    $this->db->select('SUM(total_harga) as total_sum, DATE_FORMAT(tanggal, "%M %Y") as month_year');
-    $this->db->from('bbm');
-    // $this->db->where('nomor_lambung IS NOT NULL');
-    // $this->db->where('nomor_lambung !=', 0);
-    $this->db->where('tanggal >=', date('Y-m-01', strtotime('-2 months'))); // Limit to last 6 months
-    if ($id !== "ALL") {
-      $this->db->where('nomor_lambung', $id);
-    }
-    $this->db->group_by('month_year');
-    $this->db->order_by('tanggal', 'ASC');
-
-    $bbm = $this->db->get()->result_array();
-
-    // Prepare data for JSON response with headers
-    $chart_data_bbm = [['Month', 'Biaya Total Spare Parts']]; // Header row
-    if (!empty($bbm)) {
-      foreach ($bbm as $row) {
-        $chart_data_bbm[] = [$row['month_year'], (int)$row['total_sum']];
-      }
-    } else {
-      $chart_data_bbm[] = [0, 0];
-    }
-    echo json_encode($chart_data_bbm);
   }
 }

@@ -107,7 +107,6 @@
         });
 
         function formatState(state, colorAktiva, colorPasiva, signAktiva, signPasiva) {
-            console.log(state.id)
             if (!state.id) {
                 return state.text;
             }
@@ -121,7 +120,6 @@
         };
 
         function formatStateDebit(state) {
-            console.log(state)
             return formatState(state, '#2ecc71', '#ff7675', '(+)', '(-)');
         }
 
@@ -138,5 +136,23 @@
             // templateResult: formatStateKredit,
             templateSelection: formatStateKredit
         });
+
+        $('#neraca_debit, #neraca_kredit').change(function() {
+            var debit = $('#neraca_debit').find(":selected").val();
+            var kredit = $('#neraca_kredit').find(":selected").val();
+            disabledSubmit(debit, kredit);
+        });
+
+        function disabledSubmit(debit, kredit) {
+            if (debit && kredit) {
+                if (debit == kredit) {
+                    console.log('sama');
+                    $('.btn-success').prop('disabled', true);
+                } else {
+                    console.log('tidak sama');
+                    $('.btn-success').prop('disabled', false);
+                }
+            }
+        }
     });
 </script>

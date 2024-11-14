@@ -55,7 +55,7 @@ class M_coa extends CI_Model
             $this->cb->group_end();
         }
 
-        $this->cb->order_by('tanggal', 'DESC');
+        $this->cb->order_by('id', 'DESC');
 
         return $this->cb->get('jurnal_neraca')->result();
     }

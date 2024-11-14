@@ -63,85 +63,9 @@
             </div>
         <?php } ?>
         <br>
-
-        <!-- <div class="header" style="margin-left: 1%">
-            <h2>Total penggunaan spare part</h2>
-            <hr>
-        </div> -->
-        <div class="row justify-content-center" style="margin-bottom: 30px;">
-            <div class="col-md-4 col-sm-6 col-xs-12">
-                <label for="">Pilih Asset</label>
-                <select class="form-control" name="id_asset" id="id_asset" onchange="onChangeAsset()">
-                    <option value="ALL">ALL</option>
-                    <?php foreach ($asset as $a) : ?>
-                        <option value="<?= $a->Id ?>"><?= $a->Id ?> - <?= $a->nama_asset ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-md-4 col-sm-6 col-xs-12">
-                <div id="chart_div_spare_part"></div>
-            </div>
-            <div class="col-md-4 col-sm-6 col-xs-12">
-                <div id="chart_div_tonase"></div>
-            </div>
-            <div class="col-md-4 col-sm-6 col-xs-12">
-                <div id="chart_div_bbm"></div>
-            </div>
-        </div>
-        <br>
-        <div class="row">
-            <!-- <div class="col-md-4 col-sm-6 col-xs-12">
-                <div class="x_panel tile fixed_height_300">
-                    <div class="x_title">
-                        <h2><i class="fa fa-envelope-o"></i> Total Penggunaan Spare part</h2>
-                        <div class="clearfix"></div>
-                    </div>
-                    <div class="x_content">
-                        <h4>Total Sparepart : <?php
-                                                if (!empty($total_sparepart->total_sum)) {
-                                                    echo $total_sparepart->total_sum;
-                                                } else {
-                                                    echo '0';
-                                                }
-                                                ?></h4><br>
-                        <?php
-                        if (!empty($total_sparepart_perbulan)) {
-                            foreach ($total_sparepart_perbulan as $tsp) {
-                        ?>
-                                <a href="<?= base_url('task/task') ?>">
-                                    <div class="widget_summary">
-                                        <div class="w_left w_25">
-                                            <span><?= $tsp->month_year ?></span>
-                                        </div>
-                                        <div class="w_center w_55">
-                                            <div class="progress">
-                                                <div class="progress-bar bg-blue-sky" role="progressbar" aria-valuenow="46.288209606987" aria-valuemin="0" aria-valuemax="100" style="width: <?= $tsp->total_sum ?>%;">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="w_right w_20">
-                                            <span><?= $tsp->total_sum ?></span>
-                                        </div>
-                                        <div class="clearfix"></div>
-                                    </div>
-                                </a>
-                            <?php
-                            }
-                        } else {
-                            ?>
-                            <span>Tidak Ada Yang Keluar</span>
-
-                        <?php
-                        }
-                        ?>
-                    </div>
-                </div>
-            </div> -->
-        </div>
         <div class="row">
             <div class="col-md-8 col-sm-8 col-xs-12">
+
                 <div class="row">
                     <!-- <div class="col-md-6 col-sm-6 col-xs-12">
 									<div class="x_panel tile fixed_height_300">
@@ -319,9 +243,14 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="clearfix"></div>
+
+
+
                 </div>
             </div>
+
         </div>
         <!-- Start content-->
 
@@ -330,141 +259,3 @@
     <br><br>
     <br><br>
 </div>
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<link rel="stylesheet" href="<?= base_url(); ?>assets/select2/css/select2.min.css">
-<script type="text/javascript" src="<?= base_url(); ?>assets/select2/js/select2.min.js"></script>
-<script type="text/javascript">
-    // Load the Google Charts API
-    google.charts.load('current', {
-        'packages': ['corechart']
-    });
-
-    function matchStart(params, data) {
-        // If there are no search terms, return all data
-        if ($.trim(params.term) === '') {
-            return data;
-        }
-
-        // Convert both option text and search term to uppercase for case-insensitive comparison
-        if (data.text.toUpperCase().includes(params.term.toUpperCase())) {
-            return data;
-        }
-
-        // Return `null` if the term does not match any part of the text
-        return null;
-    }
-
-    $(document).ready(function() {
-        $("#id_asset").select2({
-            matcher: matchStart,
-            placeholder: "Select an asset", // Optional: adds a placeholder
-            allowClear: true // Optional: adds a clear option
-        });
-    });
-
-    function onChangeAsset() {
-        // Get the selected asset ID from the dropdown
-        var id = document.getElementById('id_asset').value;
-        // Call drawChart_sparepart with the selected ID
-        drawChart_sparepart(id);
-        drawChart_tonase(id);
-        drawChart_bbm(id);
-    }
-
-    // Callback function to draw the chart
-    google.charts.setOnLoadCallback(drawChart_sparepart);
-
-    function drawChart_sparepart(id = "ALL") {
-        // id = id || "null";
-        fetch('Home/get_sparepart_data/' + id)
-            .then(response => response.json())
-            .then(data => {
-                // Format data with headers required by Google Charts
-                var chartData = google.visualization.arrayToDataTable(data);
-
-                // Set chart options with the adjusted hAxis and vAxis
-                var options = {
-                    title: 'Biaya Total Spare Parts Per Month',
-                    chartArea: {
-                        width: '50%'
-                    },
-                    hAxis: {
-                        title: 'Month', // Interpret first column as a string for categories
-                    },
-                    vAxis: {
-                        title: 'Biaya Total Spare Parts',
-                        minValue: 0
-                    }
-                };
-
-                // Instantiate and draw the chart
-                var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_spare_part'));
-                chart.draw(chartData, options);
-            })
-            .catch(error => console.error('Error fetching chart data:', error));
-    }
-
-
-
-    google.charts.setOnLoadCallback(drawChart_tonase);
-
-    function drawChart_tonase(id = "ALL") {
-        fetch('Home/get_tonase_data/' + id)
-            .then(response => response.json())
-            .then(data => {
-                // Format data with headers required by Google Charts
-                var chartData = google.visualization.arrayToDataTable(data);
-
-                // Set chart options with the adjusted hAxis and vAxis
-                var options = {
-                    title: 'Total HM Per Month',
-                    chartArea: {
-                        width: '50%'
-                    },
-                    hAxis: {
-                        title: 'Month', // Interpret first column as a string for categories
-                    },
-                    vAxis: {
-                        title: 'Total Hm',
-                        minValue: 0
-                    }
-                };
-
-                // Instantiate and draw the chart
-                var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_tonase'));
-                chart.draw(chartData, options);
-            })
-            .catch(error => console.error('Error fetching chart data:', error));
-    }
-
-    google.charts.setOnLoadCallback(drawChart_bbm);
-
-    function drawChart_bbm(id = "ALL") {
-        fetch('Home/get_bbm_data/' + id)
-            .then(response => response.json())
-            .then(data => {
-                // Format data with headers required by Google Charts
-                var chartData = google.visualization.arrayToDataTable(data);
-
-                // Set chart options with the adjusted hAxis and vAxis
-                var options = {
-                    title: 'Biaya Total BBM Per Month',
-                    chartArea: {
-                        width: '50%'
-                    },
-                    hAxis: {
-                        title: 'Month', // Interpret first column as a string for categories
-                    },
-                    vAxis: {
-                        title: 'Biaya Total BBM',
-                        minValue: 0
-                    }
-                };
-
-                // Instantiate and draw the chart
-                var chart = new google.visualization.ColumnChart(document.getElementById('chart_div_bbm'));
-                chart.draw(chartData, options);
-            })
-            .catch(error => console.error('Error fetching chart data:', error));
-    }
-</script>

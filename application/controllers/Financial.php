@@ -29,9 +29,7 @@ class Financial extends CI_Controller
     //     $this->M_Logging->add_log($user_id, $action, $tableName, $record_id);
     // }
 
-    public function index()
-    {
-    }
+    public function index() {}
 
     public function financial_entry($jenis = NULL)
     {
@@ -80,6 +78,11 @@ class Financial extends CI_Controller
         } else {
             $coa_debit = $this->input->post('neraca_debit');
             $coa_kredit = $this->input->post('neraca_kredit');
+
+            if ($coa_debit == $coa_kredit) {
+                $this->session->set_flashdata('message_error', 'CoA Debit dan Kredit tidak boleh sama');
+                redirect('financial/financial_entry');
+            }
             $nominal = preg_replace('/[^a-zA-Z0-9\']/', '', $this->input->post('input_nominal'));
             $jenis_fe = "single";
         }
@@ -1339,28 +1342,37 @@ class Financial extends CI_Controller
 
             $substr_coa = substr($no_sbb, 0, 1);
 
-            // cek tabel
-            if ($substr_coa == "1" || $substr_coa == "2" || $substr_coa == "3") {
-                $tabel = "t_coa_sbb";
-            } else if ($substr_coa == "4" || $substr_coa == "5" || $substr_coa == "6" || $substr_coa == "7" || $substr_coa == "8" || $substr_coa == "9") {
-                $tabel = "t_coalr_sbb";
-            } else {
-                $this->session->set_flashdata('message_error', 'Format nomor CoA ' . $no_sbb . ' tidak sesuai.');
-                redirect($_SERVER['HTTP_REFERER']);
-            }
-
             if ($substr_coa == "1" || $substr_coa == "5" || $substr_coa == "6" || $substr_coa == "7" || $substr_coa == "5" || $substr_coa == "6") {
                 $posisi = 'AKTIVA';
             } else {
                 $posisi = 'PASIVA';
             }
 
-            $data = [
-                'no_bb' => $no_bb,
-                'no_sbb' => $no_sbb,
-                'nama_perkiraan' => $nama_coa,
-                'posisi' => $posisi,
-            ];
+
+
+            // cek tabel
+            if ($substr_coa == "1" || $substr_coa == "2" || $substr_coa == "3") {
+                $tabel = "t_coa_sbb";
+
+                $data = [
+                    'no_bb' => $no_bb,
+                    'no_sbb' => $no_sbb,
+                    'nama_perkiraan' => $nama_coa,
+                    'posisi' => $posisi,
+                ];
+            } else if ($substr_coa == "4" || $substr_coa == "5" || $substr_coa == "6" || $substr_coa == "7" || $substr_coa == "8" || $substr_coa == "9") {
+                $tabel = "t_coalr_sbb";
+                $data = [
+                    'no_lr_bb' => $no_bb,
+                    'no_lr_sbb' => $no_sbb,
+                    'nama_perkiraan' => $nama_coa,
+                    'posisi' => $posisi,
+                ];
+            } else {
+                $this->session->set_flashdata('message_error', 'Format nomor CoA ' . $no_sbb . ' tidak sesuai.');
+                redirect($_SERVER['HTTP_REFERER']);
+            }
+
 
             $this->db->trans_begin();
 
@@ -1452,7 +1464,8 @@ class Financial extends CI_Controller
         $last_periode = new DateTime($periode);
         $last_periode = $last_periode->modify('-1 month');
         $last_periode = $last_periode->format('Y-m');
-
+        // print_r($last_periode);
+        // exit;
 
         $getLastPeriod = $this->m_coa->cek_saldo_awal($last_periode);
 
