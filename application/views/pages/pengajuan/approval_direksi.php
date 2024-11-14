@@ -223,7 +223,7 @@
 
                                           <label for="status" class="form-label">Total Pengajuan</label>
 
-                                          <input type="text" class="form-control" name="total" id="total" value="<?= number_format($value['total']) ?>" readonly>
+                                          <input type="text" class="form-control" name="total" id="total<?= $value['Id'] ?>" value="<?= number_format($value['total']) ?>" readonly>
 
                                         </div>
 
@@ -235,7 +235,7 @@
 
                                           <label for="status" class="form-label">Status</label>
 
-                                          <select name="status" id="status" class="form-control">
+                                          <select name="status" id="status<?= $value['Id'] ?>" class="form-control">
 
                                             <option value=""> -- Pilih Status -- </option>
 
@@ -255,7 +255,7 @@
 
                                           <label for="catatan" class="form-label">Catatan</label>
 
-                                          <textarea name="catatan" id="catatan" class="form-control"></textarea>
+                                          <textarea name="catatan" id="catatan<?= $value['Id'] ?>" class="form-control"></textarea>
 
                                         </div>
 
