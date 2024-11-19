@@ -70,6 +70,16 @@ class M_coa extends CI_Model
         }
     }
 
+    public function getCoaBB($no_coa)
+    {
+        if ($no_coa == "ALL") {
+            $this->cb->select('nama_perkiraan, no_bb');
+            return $this->cb->get('v_coabb_all')->result();
+        } else {
+            return $this->cb->where('no_bb', $no_coa)->get('v_coabb_all')->row_array();
+        }
+    }
+
     public function getCoaByCode($code)
     {
         return $this->cb->like('no_sbb', $code, 'after')->get('v_coa_all')->result();

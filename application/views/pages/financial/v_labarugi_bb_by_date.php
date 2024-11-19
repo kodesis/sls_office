@@ -5,6 +5,7 @@
     <div class="row">
         <div class="col-md-12 col-sm-12 col-xs-12">
             <div class="x_panel card">
+
                 <div class="x_title">
                     <h2>Neraca per tanggal <?= format_indo($per_tanggal) ?> </h2>
                 </div>
@@ -12,7 +13,7 @@
                     <div class="row">
                         <div class="col-md-4 col-xs-12">
                             <h5>
-                                Neraca: <strong>Rp <?= (isset($neraca)) ? number_format($neraca) : 0 ?></strong>
+                                Laba berjalan: <strong>Rp <?= number_format($total_pendapatan) ?></strong>
                             </h5>
                         </div>
                         <form class="form-horizontal form-label-left" method="POST" action="<?= base_url('financial/reportByDate') ?>">
@@ -34,7 +35,6 @@
                                 </div>
                             </div>
                             <div class="col-md-2 col-xs-12 text-right">
-
                                 <div class="form-group row">
                                     <button type="submit" name="button_sbm" class="btn btn-primary btn-sm" value="lihat">Lihat</button>
                                     <button type="submit" name="button_sbm" class="btn btn-success btn-sm" value="excel">Unduh excel</button>
@@ -44,8 +44,8 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 col-xs-12">
-                            <h2 class="text-center">Activa</h2>
-                            <p class="text-right">Total: <strong><?= (isset($sum_activa)) ? number_format($sum_activa) : 0 ?></strong></p>
+                            <h2 class="text-center">Biaya</h2>
+                            <p class="text-right">Total: <strong><?= number_format($sum_biaya) ?></strong></p>
                             <table id="" class="table" style="width:100%">
                                 <thead>
                                     <tr>
@@ -56,32 +56,26 @@
                                 </thead>
                                 <tbody>
                                     <?php
-                                    if (isset($activa)) :
-                                        foreach ($activa as $a) :
-                                            $coa = $this->m_coa->getCoa($a->no_sbb);
+                                    foreach ($biaya as $a) :
+                                        $coa = $this->m_coa->getCoaBB($a->no_bb);
 
-                                            if ($coa['table_source'] == "t_coa_sbb" && $coa['posisi'] == 'AKTIVA' && $a->saldo_awal != '0') : ?>
-                                                <tr>
-                                                    <td><button class="bg-blue arus_kas" data-id="<?= $a->no_sbb ?>"><?= $a->no_sbb ?></button></td>
-                                                    <td><?= $coa['nama_perkiraan'] ?></td>
-                                                    <td class="text-right"><?= number_format($a->saldo_awal) ?></td>
-                                                </tr>
-                                        <?php
-                                            endif;
-                                        endforeach;
-                                    else : ?>
+                                        // if ($coa['table_source'] == "t_coalr_bb" && $coa['posisi'] == 'AKTIVA') { 
+                                    ?>
                                         <tr>
-                                            <td colspan="3">Tidak ada activa yang ditampilkan</td>
+                                            <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></td>
+                                            <td><?= $coa['nama_perkiraan'] ?></td>
+                                            <td class="text-right"><?= number_format($a->saldo_aktiva) ?></td>
                                         </tr>
                                     <?php
-                                    endif; ?>
+                                    // }
+                                    endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
                         <div class="col-md-6 col-xs-12">
                             <div class="row justify-content-between">
-                                <h2 class="text-center">Pasiva</h2>
-                                <p class="text-right">Total: <strong><?= (isset($sum_pasiva)) ? number_format($sum_pasiva) : 0 ?></strong></p>
+                                <h2 class="text-center">Pendapatan</h2>
+                                <p class="text-right">Total: <strong><?= number_format($sum_pendapatan) ?></strong></p>
                             </div>
                             <table id="" class="table" style="width:100%">
                                 <thead>
@@ -93,31 +87,19 @@
                                 </thead>
                                 <tbody>
                                     <?php
-                                    if (isset($pasiva)) :
-                                        foreach ($pasiva as $a) :
-                                            $coa = $this->m_coa->getCoa($a->no_sbb);
+                                    foreach ($pendapatan as $a) :
+                                        $coa = $this->m_coa->getCoaBB($a->no_bb);
 
-                                            if ($coa['table_source'] == "t_coa_sbb" && $coa['posisi'] == 'PASIVA' && $a->saldo_awal != '0') : ?>
-                                                <tr>
-                                                    <td><button class="bg-blue arus_kas" data-id="<?= $a->no_sbb ?>"><?= $a->no_sbb ?></td>
-                                                    <td><?= $coa['nama_perkiraan'] ?></td>
-                                                    <td class="text-right"><?= number_format($a->saldo_awal) ?></td>
-                                                </tr>
-                                        <?php
-                                            endif;
-                                        endforeach; ?>
+                                        // if ($coa['table_source'] == "t_coalr_bb" && $coa['posisi'] == 'PASIVA') { 
+                                    ?>
                                         <tr>
-                                            <td>3103001</td>
-                                            <td>LABA TAHUN BERJALAN</td>
-                                            <td class="text-right"><?= number_format($laba) ?></td>
+                                            <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></td>
+                                            <td><?= $coa['nama_perkiraan'] ?></td>
+                                            <td class="text-right"><?= number_format($a->saldo_pasiva) ?></td>
                                         </tr>
                                     <?php
-                                    else : ?>
-                                        <tr>
-                                            <td colspan="3">Tidak ada pasiva yang ditampilkan</td>
-                                        </tr>
-                                    <?php
-                                    endif; ?>
+                                    // }
+                                    endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -144,7 +126,7 @@
                         </div>
                         <div class="col-md-6 col-xs-12">
                             <label for="tgl_sampai" class="form-label">Sampai</label>
-                            <input type="date" class="form-control" name="tgl_sampai" value="<?= date('Y-m-d') ?>" required>
+                            <input type="date" class="form-control" name="tgl_sampai" required>
                         </div>
                     </div>
                 </div>

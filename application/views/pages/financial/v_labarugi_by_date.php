@@ -11,7 +11,7 @@
                 </div>
                 <div class="x_content">
                     <div class="row">
-                        <div class="col-md-5 col-xs-12">
+                        <div class="col-md-4 col-xs-12">
                             <h5>
                                 Laba berjalan: <strong>Rp <?= number_format($total_pendapatan) ?></strong>
                             </h5>
@@ -29,12 +29,15 @@
                                     <select name="jenis_laporan" id="jenis_laporan" class="form-control">
                                         <option <?= ($this->input->post('jenis_laporan') == "neraca") ? "selected" : "" ?> value="neraca">Neraca SBB</option>
                                         <option <?= ($this->input->post('jenis_laporan') == "laba_rugi") ? "selected" : "" ?> value="laba_rugi">Laba Rugi SBB</option>
+                                        <option <?= ($this->input->post('jenis_laporan') == "neraca_bb") ? "selected" : "" ?> value="neraca_bb">Neraca BB</option>
+                                        <option <?= ($this->input->post('jenis_laporan') == "lr_bb") ? "selected" : "" ?> value="lr_bb">Laba Rugi BB</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-1 col-xs-12 text-right">
+                            <div class="col-md-2 col-xs-12 text-right">
                                 <div class="form-group row">
-                                    <button type="submit" class="btn btn-primary">Lihat</button>
+                                    <button type="submit" name="button_sbm" class="btn btn-primary btn-sm" value="lihat">Lihat</button>
+                                    <button type="submit" name="button_sbm" class="btn btn-success btn-sm" value="excel">Unduh excel</button>
                                 </div>
                             </div>
                         </form>
