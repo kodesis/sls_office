@@ -322,7 +322,9 @@ class Financial extends CI_Controller
             'coa' => $this->m_coa->list_coa(),
             'keyword' => $keyword,
             'title' => "FE Pending",
-            'pages' => "pages/financial/v_fe_pending"
+            'pages' =>
+            "pages/financial/v_fe_pending",
+            'key' => 'pending'
         ];
 
         $this->load->view('index', $data);
@@ -380,7 +382,8 @@ class Financial extends CI_Controller
             'coa' => $this->m_coa->list_coa(),
             'keyword' => $keyword,
             'title' => "FE Pending",
-            'pages' => "pages/financial/v_fe_pending"
+            'pages' => "pages/financial/v_fe_pending",
+            'key' => 'approved'
         ];
 
         $this->load->view('index', $data);
@@ -388,6 +391,8 @@ class Financial extends CI_Controller
 
     public function approve_fe($slug)
     {
+        print_r($slug);
+        exit;
 
         $nip = $this->session->userdata('nip');
         $fe = $this->m_invoice->detail_fe($slug);
@@ -450,6 +455,92 @@ class Financial extends CI_Controller
 
         redirect('financial/fe_pending');
     }
+
+    public function approve_fe_multiple()
+    {
+        $pilih = $this->input->post('pilih');
+        $lastValue = end($pilih);
+        $startIndex = array_search($lastValue, $pilih);
+
+        $nip = $this->session->userdata('nip');
+
+        if ($startIndex !== false) {
+            $this->db->trans_begin(); // Mulai transaksi sebelum looping
+
+            for ($i = $startIndex; $i >= 0; $i--) {  // Loop dari indeks terakhir
+                $slug = $pilih[$i];
+                $fe = $this->m_invoice->detail_fe($slug);
+                $user = $this->M_Auth->cek_user($fe['created_by']);
+                $keterangan = $fe['keterangan'];
+                $tanggal_transaksi = $fe['tanggal_transaksi'];
+
+                if ($fe['jenis_fe'] == "multi_kredit") {
+                    // Handle multi_kredit
+                    $coa_debit = json_decode($fe['coa_debit'], true);
+                    $coa_kredit = json_decode($fe['coa_kredit'], true);
+                    $nominal = json_decode($fe['nominal'], true);
+
+                    if (is_array($coa_kredit) && is_array($nominal)) {
+                        for ($j = 0; $j < count($coa_kredit); $j++) {
+                            $this->posting($coa_debit, $coa_kredit[$j], $keterangan, $nominal[$j], $tanggal_transaksi);
+                        }
+                    }
+                } else if ($fe['jenis_fe'] == "multi_debit") {
+                    // Handle multi_debit
+                    $coa_debit = json_decode($fe['coa_debit'], true);
+                    $coa_kredit = json_decode($fe['coa_kredit'], true);
+                    $nominal = json_decode($fe['nominal'], true);
+
+                    if (is_array($coa_debit) && is_array($nominal)) {
+                        for ($j = 0; $j < count($coa_debit); $j++) {
+                            $this->posting($coa_debit[$j], $coa_kredit, $keterangan, $nominal[$j], $tanggal_transaksi);
+                        }
+                    }
+                } else if ($fe['jenis_fe'] == "single") {
+                    // Handle single
+                    $coa_debit = json_decode($fe['coa_debit'], true);
+                    $coa_kredit = json_decode($fe['coa_kredit'], true);
+                    $nominal = json_decode($fe['nominal'], true);
+
+                    $this->posting($coa_debit, $coa_kredit, $keterangan, $nominal, $tanggal_transaksi);
+                }
+
+                // Update status FE
+                $data = [
+                    'status_approval' => '1',
+                    'approve_at' => date('Y-m-d H:i:s'),
+                    'approve_by' => $nip,
+                ];
+
+                if ($this->m_invoice->update_fe($data, $slug)) {
+
+                    $msg = "Pengajuan FE Anda No. " . $fe['slug'] . " telah disetujui oleh " . $this->session->userdata('nama');
+                    $no_whatsapp = $user['phone'];
+                    $this->api_whatsapp->wa_notif($msg, $no_whatsapp);
+                } else {
+
+                    $this->db->trans_rollback();
+                    $this->session->set_flashdata('message_error', 'Gagal setujui financial entry. Silahkan coba lagi');
+                    redirect('financial/fe_pending');
+                    return;
+                }
+            }
+
+            // Commit transaksi setelah seluruh iterasi selesai
+            if ($this->db->trans_status() === TRUE) {
+                $this->db->trans_commit();
+                $this->session->set_flashdata('message_name', 'Financial entry telah disetujui!');
+            } else {
+                $this->db->trans_rollback();
+                $this->session->set_flashdata('message_error', 'Gagal setujui financial entry. Silahkan coba lagi');
+            }
+        } else {
+            $this->session->set_flashdata('message_error', 'Tidak ada FE yang dicentang. Gagal setujui financial entry. Silahkan coba lagi');
+        }
+
+        redirect('financial/fe_pending');
+    }
+
 
     public function reject_fe($slug)
     {
