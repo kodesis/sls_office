@@ -37,8 +37,8 @@
                                 <input type="date" class="form-control" name="tgl_sampai" value="<?= $this->input->post('tgl_sampai') ?>">
                             </div>
                             <div class="col-md-3 col-xs-12">
-                                <button type="submit" name="action" value="lihat" class="btn btn-primary" style="margin-top: 24px;">Lihat</button>
-                                <button type="submit" name="action" value="excel" class="btn btn-success" style="margin-top: 24px;"><i class='fa fa-file'></i> Excel</button>
+                                <button type="submit" name="action" value="lihat" class="btn btn-sm btn-primary" style="margin-top: 24px;">Lihat</button>
+                                <button type="submit" name="action" value="excel" class="btn btn-sm btn-success" style="margin-top: 24px;"><i class='fa fa-file'></i> Excel</button>
 
                             </div>
                         </form>
@@ -186,15 +186,15 @@
     $(document).ready(function() {
         $('.select2').select2();
 
-        $("form").on("submit", function() {
-            Swal.fire({
-                title: "Loading...",
-                timerProgressBar: true,
-                owOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading()
-                },
-            });
-        });
+        // $("form").on("submit", function() {
+        //     Swal.fire({
+        //         title: "Loading...",
+        //         timerProgressBar: true,
+        //         owOutsideClick: false,
+        //         didOpen: () => {
+        //             Swal.showLoading()
+        //         },
+        //     });
+        // });
     });
 </script>

@@ -58,17 +58,13 @@
                                     <tbody>
                                         <?php
                                         foreach ($biaya as $a) :
-                                            $coa = $this->m_coa->getCoaBB($a->no_bb);
-
-                                            // if ($coa['table_source'] == "t_coalr_bb" && $coa['posisi'] == 'AKTIVA') { 
-                                        ?>
+                                            $coa = $this->m_coa->getCoaBB($a->no_bb); ?>
                                             <tr>
-                                                <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></td>
+                                                <td><?= $a->no_bb ?></td>
                                                 <td><?= $coa['nama_perkiraan'] ?></td>
                                                 <td class="text-right"><?= number_format($a->saldo_aktiva) ?></td>
                                             </tr>
                                         <?php
-                                        // }
                                         endforeach; ?>
                                     </tbody>
                                 </table>
@@ -91,17 +87,13 @@
                                     <tbody>
                                         <?php
                                         foreach ($pendapatan as $a) :
-                                            $coa = $this->m_coa->getCoaBB($a->no_bb);
-
-                                            // if ($coa['table_source'] == "t_coalr_bb" && $coa['posisi'] == 'PASIVA') { 
-                                        ?>
+                                            $coa = $this->m_coa->getCoaBB($a->no_bb); ?>
                                             <tr>
-                                                <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></td>
+                                                <td><?= $a->no_bb ?></td>
                                                 <td><?= $coa['nama_perkiraan'] ?></td>
                                                 <td class="text-right"><?= number_format($a->saldo_pasiva) ?></td>
                                             </tr>
                                         <?php
-                                        // }
                                         endforeach; ?>
                                     </tbody>
                                 </table>

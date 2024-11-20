@@ -12,7 +12,7 @@
                     <div class="row">
                         <div class="col-md-4 col-xs-12">
                             <h5>
-                                Neraca: <strong>Rp <?= (isset($neraca)) ? number_format($neraca, 2) : 0 ?></strong>
+                                Neraca: <strong>Rp <?= (isset($neraca)) ? number_format($neraca) : 0 ?></strong>
                             </h5>
                         </div>
                         <form class="form-horizontal form-label-left" method="POST" action="<?= base_url('financial/reportByDate') ?>">
@@ -45,7 +45,7 @@
                     <div class="row">
                         <div class="col-md-6 col-xs-12">
                             <h2 class="text-center">Activa</h2>
-                            <p class="text-right">Total: <strong><?= (isset($sum_activa)) ? number_format($sum_activa, 2) : 0 ?></strong></p>
+                            <p class="text-right">Total: <strong><?= (isset($sum_activa)) ? number_format($sum_activa) : 0 ?></strong></p>
                             <div class="table-responsive">
                                 <table id="" class="table" style="width:100%">
                                     <thead>
@@ -59,17 +59,13 @@
                                         <?php
                                         if (isset($activa)) :
                                             foreach ($activa as $a) :
-                                                $coa = $this->m_coa->getCoaBB($a->no_bb);
-
-                                                // if ($coa['table_source'] == "t_coa_bb" && $coa['posisi'] == 'AKTIVA' && $a->saldo_aktiva != '0') : 
-                                        ?>
+                                                $coa = $this->m_coa->getCoaBB($a->no_bb); ?>
                                                 <tr>
-                                                    <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></button></td>
+                                                    <td><?= $a->no_bb ?></td>
                                                     <td><?= $coa['nama_perkiraan'] ?></td>
-                                                    <td class="text-right"><?= number_format($a->saldo_aktiva, 2) ?></td>
+                                                    <td class="text-right"><?= number_format($a->saldo_aktiva) ?></td>
                                                 </tr>
                                             <?php
-                                            // endif;
                                             endforeach;
                                         else : ?>
                                             <tr>
@@ -84,7 +80,7 @@
                         <div class="col-md-6 col-xs-12">
                             <div class="row justify-content-between">
                                 <h2 class="text-center">Pasiva</h2>
-                                <p class="text-right">Total: <strong><?= (isset($sum_pasiva)) ? number_format($sum_pasiva, 2) : 0 ?></strong></p>
+                                <p class="text-right">Total: <strong><?= (isset($sum_pasiva)) ? number_format($sum_pasiva) : 0 ?></strong></p>
                             </div>
                             <div class="table-responsive">
                                 <table id="" class="table" style="width:100%">
@@ -99,22 +95,18 @@
                                         <?php
                                         if (isset($pasiva)) :
                                             foreach ($pasiva as $a) :
-                                                $coa = $this->m_coa->getCoaBB($a->no_bb);
-
-                                                // if ($coa['table_source'] == "t_coa_bb" && $coa['posisi'] == 'PASIVA' && $a->saldo_pasiva != '0') : 
-                                        ?>
+                                                $coa = $this->m_coa->getCoaBB($a->no_bb); ?>
                                                 <tr>
-                                                    <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></td>
+                                                    <td><?= $a->no_bb ?></td>
                                                     <td><?= $coa['nama_perkiraan'] ?></td>
-                                                    <td class="text-right"><?= number_format($a->saldo_pasiva, 2) ?></td>
+                                                    <td class="text-right"><?= number_format($a->saldo_pasiva) ?></td>
                                                 </tr>
                                             <?php
-                                            // endif;
                                             endforeach; ?>
                                             <tr>
                                                 <td>3103</td>
                                                 <td>LABA TAHUN BERJALAN</td>
-                                                <td class="text-right"><?= number_format($laba, 2) ?></td>
+                                                <td class="text-right"><?= number_format($laba) ?></td>
                                             </tr>
                                         <?php
                                         else : ?>

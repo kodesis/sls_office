@@ -1282,6 +1282,7 @@ class Financial extends CI_Controller
                 $excel->getActiveSheet()->getStyle('A1:F1')->applyFromArray($style_col);
             }
 
+            $excel->getActiveSheet()->setTitle($no_coa);
 
 
             // Redirect output to a client’s web browser (Excel5)
