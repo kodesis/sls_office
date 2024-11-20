@@ -1,10 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 date_default_timezone_set('Asia/Jakarta');
-// require 'vendor/autoload.php';
-
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Financial extends CI_Controller
 {
@@ -33,9 +29,7 @@ class Financial extends CI_Controller
     //     $this->M_Logging->add_log($user_id, $action, $tableName, $record_id);
     // }
 
-    public function index()
-    {
-    }
+    public function index() {}
 
     public function financial_entry($jenis = NULL)
     {
@@ -157,105 +151,104 @@ class Financial extends CI_Controller
     public function upload_financial_entry()
     {
         $this->load->library('upload');
+        require APPPATH . 'third_party/autoload.php';
+
+        // Include PhpSpreadsheet from third_party
+        require APPPATH . 'third_party/psr/simple-cache/src/CacheInterface.php';
+
+
         // Configure upload settings
         $config['upload_path'] = FCPATH . 'upload/financial_entry';
         $config['allowed_types'] = 'xls|xlsx|csv'; // Allowed file types
-
-        // $this->load->library('upload', $config);
         $this->upload->initialize($config);
-        // Debugging output
-
 
         if (!$this->upload->do_upload('format_data')) {
             // If the upload fails, show the error
-            $error = array('error' => $this->upload->display_errors());
-            print_r($error);
-            echo "Upload Path: " . $config['upload_path'];
-            exit; // Stop execution for debugging
-        } else {
-            // Get file info
-            $file_data = $this->upload->data();
-            $file_path = $file_data['full_path']; // Full path of the uploaded file
+            $error = $this->upload->display_errors();
+            echo json_encode(['status' => false, 'message' => $error, 'upload_path' => $config['upload_path']]);
+            return;
+        }
 
+        // File upload success
+        $file_data = $this->upload->data();
+        $file_path = $file_data['full_path'];
+
+        try {
             // Load the spreadsheet using PhpSpreadsheet
-            try {
-                $spreadsheet = IOFactory::load($file_path);
-                $worksheet = $spreadsheet->getActiveSheet();
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file_path);
+            $worksheet = $spreadsheet->getActiveSheet();
 
+            // Get total rows
+            $totalRows = iterator_count($worksheet->getRowIterator());
+            $totalRows -= 2; // Adjust for headers
+            $insertedRows = 0;
 
-                $rowCounter = 1; // Start at 1 since the first row (0) is the header
-                // INPUT DATA USER
-                foreach ($worksheet->getRowIterator() as $row) {
-                    // Increment the row counter
-                    $rowCounter++;
+            // Process rows
+            foreach ($worksheet->getRowIterator() as $rowIndex => $row) {
+                // Skip header rows
+                if ($rowIndex < 3) continue;
 
-                    $totalRows = iterator_count($worksheet->getRowIterator()); // Get the total rows for progress calculation
-                    $totalRows -= 2; // Adjust for headers
-                    $insertedRows = 0; // Initialize inserted rows counter
-                    // Skip the first row (header)
-                    if (
-                        $rowCounter === 2 || $rowCounter === 3
-                    ) {
-                        continue; // Skip processing for the header row
-                    }
+                $cellIterator = $row->getCellIterator();
+                $cellIterator->setIterateOnlyExistingCells(false);
 
-                    $cellIterator = $row->getCellIterator();
-                    $cellIterator->setIterateOnlyExistingCells(false); // This loops through all cells, even empty ones
-
-                    $data = []; // Create an array to hold row data
-                    foreach ($cellIterator as $cell) {
-                        $data[] = $cell->getValue(); // Get cell value
-                    }
-
-                    // Assuming columns are: 'Nama' in column A, 'kd_peserta' in column B, etc.
-                    $coa_debit = isset($data[0]) ? (string)$data[0] : null; // Force casting to string
-                    $coa_kredit = isset($data[1]) ? (string)$data[1] : null; // Force casting to string
-                    $nominal = isset($data[2]) ? (string)$data[2] : null; // Force casting to string
-                    $tanggal = isset($data[3]) ? $data[3] : null; // Column 
-                    $tanggal = $this->processDate($tanggal);  // Assuming this method processes the date in a specific way
-
-                    $keterangan = isset($data[4]) ? $data[4] : null; // Column 
-
-                    $max_num = $this->m_invoice->select_max_fe();
-                    $bilangan = $max_num['max'] ? $max_num['max'] + 1 : 1;
-                    $no_urut = sprintf("%08d", $bilangan);
-                    $slug = "FE-" . $no_urut;
-
-                    $jenis_fe = "single";
-                    // Cek Data di database
-
-                    $data = [
-                        'coa_debit' => json_encode($coa_debit),
-                        'coa_kredit' => json_encode($coa_kredit),
-                        'nominal' => json_encode($nominal),
-                        'keterangan' => $keterangan,
-                        'tanggal_transaksi' => $tanggal,
-                        'file_path' => (isset($file_path)) ? $file_path : null,
-                        'created_by' => $this->session->userdata('nip'),
-                        'slug' => $slug,
-                        'no_urut' => $bilangan,
-                        'jenis_fe' => $jenis_fe
-                    ];
-                    // echo json_encode(array("status" => True));
-                    $this->db->trans_begin();
-
-                    $this->m_invoice->add_fe($data);
-
-
-                    $insertedRows++;
-                    $progress = round(($insertedRows / $totalRows) * 100);
-                    echo "data: " . json_encode(['progress' => $progress, 'currentRow' => $insertedRows, 'totalRows' => $totalRows]) . "\n\n";
-                    ob_flush();
-                    flush();
+                $data = [];
+                foreach ($cellIterator as $cell) {
+                    $data[] = $cell->getValue();
                 }
-                echo json_encode(array("status" => True));
-                return;
-            } catch (Exception $e) {
-                // echo 'Error loading file: ', $e->getMessage();
-                echo json_encode(array("status" => False));
+
+                // Extract and process row data
+                $coa_debit = isset($data[0]) ? (string)$data[0] : null;
+                $coa_kredit = isset($data[1]) ? (string)$data[1] : null;
+                $nominal = isset($data[2]) ? (string)$data[2] : null;
+                $tanggal = isset($data[3]) ? $this->processDate($data[3]) : null;
+                $keterangan = isset($data[4]) ? $data[4] : null;
+
+                $max_num = $this->m_invoice->select_max_fe();
+                $bilangan = $max_num['max'] ? $max_num['max'] + 1 : 1;
+                $no_urut = sprintf("%08d", $bilangan);
+                $slug = "FE-" . $no_urut;
+
+                $dataToInsert = [
+                    'coa_debit' => json_encode($coa_debit),
+                    'coa_kredit' => json_encode($coa_kredit),
+                    'nominal' => json_encode($nominal),
+                    'keterangan' => $keterangan,
+                    'tanggal_transaksi' => $tanggal,
+                    'file_path' => $file_path,
+                    'created_by' => $this->session->userdata('nip'),
+                    'slug' => $slug,
+                    'no_urut' => $bilangan,
+                    'jenis_fe' => "single",
+                ];
+
+                // Insert data
+                $this->db->trans_begin();
+                $this->m_invoice->add_fe($dataToInsert);
+
+                $insertedRows++;
+                $progress = round(($insertedRows / $totalRows) * 100);
+                echo "data: " . json_encode(['progress' => $progress, 'currentRow' => $insertedRows, 'totalRows' => $totalRows]) . "\n\n";
+                ob_flush();
+                flush();
             }
+
+            // Commit transaction
+            if ($this->db->trans_status() === FALSE) {
+                $this->db->trans_rollback();
+                echo json_encode(['status' => false, 'message' => 'Database error']);
+            } else {
+                $this->db->trans_commit();
+                echo json_encode(['status' => true, 'message' => 'File processed successfully']);
+            }
+        } catch (Exception $e) {
+            // Handle exceptions
+            echo json_encode(['status' => false, 'message' => $e->getMessage()]);
+        } finally {
+            // Cleanup uploaded file
+            if (file_exists($file_path)) unlink($file_path);
         }
     }
+
 
     function processDate($dateValue)
     {
