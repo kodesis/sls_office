@@ -38,7 +38,7 @@
                             </div>
                             <div class="col-md-3 col-xs-12">
                                 <button type="submit" name="action" value="lihat" class="btn btn-primary" style="margin-top: 24px;">Lihat</button>
-                                <button type="submit" name="action" value="excel" class="btn btn-success" style="margin-top: 24px;">Unduh Excel</button>
+                                <button type="submit" name="action" value="excel" class="btn btn-success" style="margin-top: 24px;"><i class='fa fa-file'></i> Excel</button>
 
                             </div>
                         </form>
@@ -164,7 +164,7 @@
                                     <!-- <button type="submit" class="btn btn-primary" style="margin-top: 24px;">Lihat</button> -->
 
                                     <button type="submit" name="action" value="lihat" class="btn btn-primary" style="margin-top: 24px;">Lihat</button>
-                                    <button type="submit" name="action" value="excel" class="btn btn-success" style="margin-top: 24px;">Unduh Excel</button>
+                                    <button type="submit" name="action" value="excel" class="btn btn-success" style="margin-top: 24px;"><i class='fa fa-file'></i> Excel</button>
                                 </div>
                             </form>
                         </div>

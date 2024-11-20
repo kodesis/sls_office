@@ -37,7 +37,7 @@
 
                                 <div class="form-group row">
                                     <button type="submit" name="button_sbm" class="btn btn-primary btn-sm" value="lihat">Lihat</button>
-                                    <button type="submit" name="button_sbm" class="btn btn-success btn-sm" value="excel">Unduh excel</button>
+                                    <button type="submit" name="button_sbm" class="btn btn-success btn-sm" value="excel"><i class='fa fa-file'></i> Excel</button>
                                 </div>
                             </div>
                         </form>
@@ -46,82 +46,86 @@
                         <div class="col-md-6 col-xs-12">
                             <h2 class="text-center">Activa</h2>
                             <p class="text-right">Total: <strong><?= (isset($sum_activa)) ? number_format($sum_activa, 2) : 0 ?></strong></p>
-                            <table id="" class="table" style="width:100%">
-                                <thead>
-                                    <tr>
-                                        <th>No. Coa</th>
-                                        <th>Nama Coa</th>
-                                        <th>Nominal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    if (isset($activa)) :
-                                        foreach ($activa as $a) :
-                                            $coa = $this->m_coa->getCoaBB($a->no_bb);
+                            <div class="table-responsive">
+                                <table id="" class="table" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>No. Coa</th>
+                                            <th>Nama Coa</th>
+                                            <th>Nominal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        if (isset($activa)) :
+                                            foreach ($activa as $a) :
+                                                $coa = $this->m_coa->getCoaBB($a->no_bb);
 
-                                            // if ($coa['table_source'] == "t_coa_bb" && $coa['posisi'] == 'AKTIVA' && $a->saldo_aktiva != '0') : 
-                                    ?>
+                                                // if ($coa['table_source'] == "t_coa_bb" && $coa['posisi'] == 'AKTIVA' && $a->saldo_aktiva != '0') : 
+                                        ?>
+                                                <tr>
+                                                    <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></button></td>
+                                                    <td><?= $coa['nama_perkiraan'] ?></td>
+                                                    <td class="text-right"><?= number_format($a->saldo_aktiva, 2) ?></td>
+                                                </tr>
+                                            <?php
+                                            // endif;
+                                            endforeach;
+                                        else : ?>
                                             <tr>
-                                                <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></button></td>
-                                                <td><?= $coa['nama_perkiraan'] ?></td>
-                                                <td class="text-right"><?= number_format($a->saldo_aktiva, 2) ?></td>
+                                                <td colspan="3">Tidak ada activa yang ditampilkan</td>
                                             </tr>
                                         <?php
-                                        // endif;
-                                        endforeach;
-                                    else : ?>
-                                        <tr>
-                                            <td colspan="3">Tidak ada activa yang ditampilkan</td>
-                                        </tr>
-                                    <?php
-                                    endif; ?>
-                                </tbody>
-                            </table>
+                                        endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         <div class="col-md-6 col-xs-12">
                             <div class="row justify-content-between">
                                 <h2 class="text-center">Pasiva</h2>
                                 <p class="text-right">Total: <strong><?= (isset($sum_pasiva)) ? number_format($sum_pasiva, 2) : 0 ?></strong></p>
                             </div>
-                            <table id="" class="table" style="width:100%">
-                                <thead>
-                                    <tr>
-                                        <th>No. Coa</th>
-                                        <th>Nama Coa</th>
-                                        <th>Nominal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    if (isset($pasiva)) :
-                                        foreach ($pasiva as $a) :
-                                            $coa = $this->m_coa->getCoaBB($a->no_bb);
+                            <div class="table-responsive">
+                                <table id="" class="table" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>No. Coa</th>
+                                            <th>Nama Coa</th>
+                                            <th>Nominal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        if (isset($pasiva)) :
+                                            foreach ($pasiva as $a) :
+                                                $coa = $this->m_coa->getCoaBB($a->no_bb);
 
-                                            // if ($coa['table_source'] == "t_coa_bb" && $coa['posisi'] == 'PASIVA' && $a->saldo_pasiva != '0') : 
-                                    ?>
+                                                // if ($coa['table_source'] == "t_coa_bb" && $coa['posisi'] == 'PASIVA' && $a->saldo_pasiva != '0') : 
+                                        ?>
+                                                <tr>
+                                                    <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></td>
+                                                    <td><?= $coa['nama_perkiraan'] ?></td>
+                                                    <td class="text-right"><?= number_format($a->saldo_pasiva, 2) ?></td>
+                                                </tr>
+                                            <?php
+                                            // endif;
+                                            endforeach; ?>
                                             <tr>
-                                                <td><button class="bg-blue arus_kas" data-id="<?= $a->no_bb ?>"><?= $a->no_bb ?></td>
-                                                <td><?= $coa['nama_perkiraan'] ?></td>
-                                                <td class="text-right"><?= number_format($a->saldo_pasiva, 2) ?></td>
+                                                <td>3103</td>
+                                                <td>LABA TAHUN BERJALAN</td>
+                                                <td class="text-right"><?= number_format($laba, 2) ?></td>
                                             </tr>
                                         <?php
-                                        // endif;
-                                        endforeach; ?>
-                                        <tr>
-                                            <td>3103</td>
-                                            <td>LABA TAHUN BERJALAN</td>
-                                            <td class="text-right"><?= number_format($laba, 2) ?></td>
-                                        </tr>
-                                    <?php
-                                    else : ?>
-                                        <tr>
-                                            <td colspan="3">Tidak ada pasiva yang ditampilkan</td>
-                                        </tr>
-                                    <?php
-                                    endif; ?>
-                                </tbody>
-                            </table>
+                                        else : ?>
+                                            <tr>
+                                                <td colspan="3">Tidak ada pasiva yang ditampilkan</td>
+                                            </tr>
+                                        <?php
+                                        endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
