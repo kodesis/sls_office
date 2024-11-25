@@ -59,7 +59,7 @@ class M_detail_no_lambung extends CI_Model
   }
   public function get_detail_ritasi_tonase($id, $bulan, $tahun)
   {
-    $this->cb->select('hm_awal, km_awal');
+    $this->cb->select('km_awal');
     $this->cb->from('t_ritasi');
     $this->cb->where('nomor_lambung', $id);
     $this->cb->where('MONTH(tanggal)', $bulan);
@@ -69,7 +69,7 @@ class M_detail_no_lambung extends CI_Model
     $start_data = $this->cb->get()->row_array();
 
     // Fetch 'hm_akhir' and 'km_akhir' for the last available date in the month
-    $this->cb->select('hm_akhir, km_akhir');
+    $this->cb->select('km_akhir');
     $this->cb->from('t_ritasi');
     $this->cb->where('nomor_lambung', $id);
     $this->cb->where('MONTH(tanggal)', $bulan);
@@ -78,43 +78,48 @@ class M_detail_no_lambung extends CI_Model
     $this->cb->limit(1); // Get the last record of the month
     $end_data = $this->cb->get()->row_array();
 
+    // Fetch 'hm_akhir' and 'km_akhir' for the last available date in the month
+    $this->cb->select('SUM(total_km) as total_km, SUM(total_harga_km) as total_harga_km, SUM(total_tonase) as total_tonase, SUM(total_harga_tonase) as total_harga_tonase');
+    $this->cb->from('t_ritasi');
+    $this->cb->where('nomor_lambung', $id);
+    $this->cb->where('MONTH(tanggal)', $bulan);
+    $this->cb->where('YEAR(tanggal)', $tahun);
+    $this->cb->order_by('tanggal', 'DESC'); // Order by latest date
+    $this->cb->limit(1); // Get the last record of the month
+    $total = $this->cb->get()->row_array();
+
     if (!empty($start_data && $end_data)) {
 
       if ($start_data === $end_data) {
         // If there's only one record in the month
-        $hm_difference = $start_data['hm_akhir'] - $start_data['hm_awal'];
-        $hm_awal = $start_data['hm_awal'];
-        $hm_akhir = $start_data['hm_akhir'];
-
         $km_difference = $start_data['km_akhir'] - $start_data['km_awal'];
         $km_awal = $start_data['km_awal'];
         $km_akhir = $start_data['km_akhir'];
       } else {
         // Calculate differences between the start and end data
-        $hm_difference = $end_data['hm_akhir'] - $start_data['hm_awal'];
-        $hm_awal = $start_data['hm_awal'];
-        $hm_akhir = $end_data['hm_akhir'];
+
         $km_difference = $end_data['km_akhir'] - $start_data['km_awal'];
         $km_awal = $start_data['km_awal'];
         $km_akhir = $end_data['km_akhir'];
       }
 
       return [
-        'hm_difference' => $hm_difference,
-        'km_difference' => $km_difference,
-        'hm_awal' => $hm_awal,
-        'hm_akhir' => $hm_akhir,
         'km_awal' => $km_awal,
-        'km_akhir' => $km_akhir
+        'km_akhir' => $km_akhir,
+        'total_km' => $total['total_km'],
+        'total_harga_km' => $total['total_harga_km'],
+        'total_tonase' => $total['total_tonase'],
+        'total_harga_tonase' => $total['total_harga_tonase'],
+
       ];
     }
     return [
-      'hm_difference' => 0,
-      'km_difference' => 0,
-      'hm_awal' => 0,
-      'hm_akhir' => 0,
       'km_awal' => 0,
-      'km_akhir' => 0
+      'km_akhir' => 0,
+      'total_km' => 0,
+      'total_harga_km' => 0,
+      'total_tonase' => 0,
+      'total_harga_tonase' => 0,
     ];
   }
   public function get_detail_ritasi_bbm($id, $bulan, $tahun)

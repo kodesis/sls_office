@@ -12,11 +12,11 @@
         <div class="col-md-12 col-sm-12 col-xs-12">
             <div class="x_panel card">
                 <div class="x_title">
-                    <h2>List Ritasi</h2>
+                    <h2>List Shift</h2>
                 </div>
                 <div class="x_content">
                     <div class="row">
-                        <a href="<?= base_url('ritasi/create') ?>" class="btn btn-primary">Create Ritasi</a>
+                        <a href="<?= base_url('ritasi/create') ?>" class="btn btn-primary">Create Shift</a>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-bordered">
@@ -28,12 +28,14 @@
                                     <th scope="col">Tanggal</th>
                                     <th scope="col">Shift</th>
                                     <th scope="col">Jam</th>
-                                    <th scope="col">HM Awal</th>
-                                    <th scope="col">HM Akhir</th>
                                     <th scope="col">KM Awal</th>
                                     <th scope="col">KM Akhir</th>
-                                    <th scope="col">Tonase</th>
-                                    <th scope="col">Harga</th>
+                                    <th scope="col">Total KM</th>
+                                    <th scope="col">Harga KM</th>
+                                    <th scope="col">Total Harga KM</th>
+                                    <th scope="col">Total Tonase</th>
+                                    <th scope="col">Harga Tonase</th>
+                                    <th scope="col">Total Harga Tonase</th>
                                     <th scope="col">#</th>
                                 </tr>
                             </thead>
@@ -52,12 +54,14 @@
                                             <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $value['tanggal'] ?></a></td>
                                             <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $value['shift'] ?></a></td>
                                             <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $value['jam_awal'] ?> - <?= $value['jam_akhir'] ?></a></td>
-                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['hm_awal']) ?></a></td>
-                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['hm_akhir']) ?></a></td>
                                             <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['km_awal']) ?></a></td>
                                             <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['km_akhir']) ?></a></td>
-                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['hm_akhir'] - $value['hm_awal']) ?></a></td>
-                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)">Rp. <?= number_format($value['harga']) ?></a></td>
+                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['total_km']) ?></a></td>
+                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['harga_km']) ?></a></td>
+                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['total_km'] * $value['harga_km']) ?></a></td>
+                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['total_tonase']) ?></a></td>
+                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['harga_tonase']) ?></a></td>
+                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= number_format($value['total_tonase'] * $value['harga_tonase']) ?></a></td>
                                             <td scope="row">
                                                 <a href="<?= base_url('ritasi/ubah/' . $value['Id']) ?>" class="btn btn-success btn-xs">Update</a>
                                                 <a href="<?= base_url('ritasi/hapus/' . $value['Id']) ?>" class="btn btn-danger btn-xs delete-btn">delete</a>
@@ -84,7 +88,7 @@
         <div class="col-md-12 col-sm-12 col-xs-12">
             <div class="x_panel card">
                 <div class="x_title">
-                    <h2>Detail Retasi
+                    <h2>Detail Retasi&nbsp;
                         <h2 id="id_retasi_in_detail"> </h2>
                     </h2>
                 </div>
@@ -116,10 +120,14 @@
                                             <input type="time" class="form-control" name="jam" id="jam">
                                         </div>
                                         <div class="col-md-2 col-sm-4 col-xs-12">
-                                            <label for="metode" class="form-label">HM</label>
-                                            <input type="number" class="form-control" name="hm" id="hm">
+                                            <label for="metode" class="form-label">Berat Awal</label>
+                                            <input type="number" class="form-control" name="berat_awal" id="berat_awal">
                                         </div>
                                         <div class="col-md-2 col-sm-4 col-xs-12">
+                                            <label for="metode" class="form-label">Berat Akhir</label>
+                                            <input type="number" class="form-control" name="berat_akhir" id="berat_akhir">
+                                        </div>
+                                        <div class="col-md-2 col-sm-4 col-xs-12" style="margin-top: 5px;">
                                             <label for="metode" class="form-label">KM</label>
                                             <input type="number" class="form-control" name="km" id="km">
                                         </div>
@@ -153,12 +161,25 @@
                                             <input type="time" class="form-control" name="jam" id="jam_edit">
                                         </div>
                                         <div class="col-md-2 col-sm-4 col-xs-12">
-                                            <label for="metode" class="form-label">HM</label>
-                                            <input type="number" class="form-control" name="hm" id="hm_edit">
+                                            <label for="metode" class="form-label">Berat Awal</label>
+                                            <input type="number" class="form-control" name="berat_awal" id="berat_awal_edit">
                                         </div>
                                         <div class="col-md-2 col-sm-4 col-xs-12">
-                                            <label for="metode" class="form-label">KM</label>
+                                            <label for="metode" class="form-label">Berat Akhir</label>
+                                            <input type="number" class="form-control" name="berat_akhir" id="berat_akhir_edit">
+                                        </div>
+                                        <div class="col-md-2 col-sm-4 col-xs-12">
+                                            <label for="metode" class="form-label" style="margin-top: 5px;">Total Tonase</label>
+                                            <input type="number" class="form-control" name="total_tonase" id="total_tonase_edit">
+                                        </div>
+                                        <div class="col-md-2 col-sm-4 col-xs-12">
+                                            <label for="metode" class="form-label" style="margin-top: 5px;">KM</label>
                                             <input type="number" class="form-control" name="km" id="km_edit">
+                                        </div>
+
+                                        <div class="col-md-2 col-sm-4 col-xs-12">
+                                            <label for="metode" class="form-label" style="margin-top: 5px;">total_KM</label>
+                                            <input type="number" class="form-control" name="total_km" id="total_km_edit">
                                         </div>
                                     </div>
                                 </form>
@@ -179,8 +200,11 @@
                                     <th scope="col">Lokasi Loading</th>
                                     <th scope="col">Tujuan</th>
                                     <th scope="col">Jam</th>
-                                    <th scope="col">HM</th>
+                                    <th scope="col">Berat Awal</th>
+                                    <th scope="col">Berat Akhir</th>
+                                    <th scope="col">Total Tonase</th>
                                     <th scope="col">KM</th>
+                                    <th scope="col">Total KM</th>
                                     <th scope="col">#</th>
                                 </tr>
                             </thead>
@@ -192,6 +216,13 @@
                                     </td>
                                 </tr>
                             </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="7"></th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col" id="total_km_table">0</th>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                     <div class="row text-center">
@@ -329,6 +360,7 @@
         const tableBody = document.querySelector("#table_detail tbody");
         tableBody.innerHTML = ""; // Clear existing rows
         var no = 1;
+        let totalKm = 0; // Variable to store the sum of 'km'
         data.forEach(item => {
             const row = document.createElement("tr");
 
@@ -337,16 +369,23 @@
             <td>${item.lokasi_loading}</td>
             <td>${item.tujuan}</td>
             <td>${item.jam}</td>
-            <td>${item.hm}</td>
+            <td>${item.berat_awal}</td>
+            <td>${item.berat_akhir}</td>
+            <td>${item.total_tonase}</td>
             <td>${item.km}</td>
+            <td>${item.total_km}</td>
             <td>
             <a onclick="update_detail(${item.Id})" class="btn btn-success btn-xs">Update</a>
             <a onclick="hapus_detail(${item.Id})" class="btn btn-danger btn-xs delete-btn">delete</a>
             </td>
         `;
+
+            totalKm += parseFloat(item.total_km) || 0;
+
             no++;
             tableBody.appendChild(row);
         });
+        $('#total_km_table').text(totalKm); // Update the total km value in the table
     }
 
     function oncreate_detail() {
@@ -462,8 +501,11 @@
                 $('#lokasi_loading_edit').val(data.lokasi_loading);
                 $('#tujuan_edit').val(data.tujuan);
                 $('#jam_edit').val(data.jam);
-                $('#hm_edit').val(data.hm);
+                $('#berat_awal_edit').val(data.berat_awal);
+                $('#berat_akhir_edit').val(data.berat_akhir);
+                $('#total_tonase_edit').val(data.total_tonase);
                 $('#km_edit').val(data.km);
+                $('#total_km_edit').val(data.total_km);
                 $('#edit_detail').removeClass('hidden');
                 $('#edit_detail').addClass('show');
                 // $('#halaman_page_edit').val(data.halaman_page);

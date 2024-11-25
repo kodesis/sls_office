@@ -33,7 +33,7 @@
                 <div class="x_content">
                     <?php if (!$this->uri->segment(3)) { ?>
                         <form class="form-horizontal form-label-left" method="POST" action="<?= base_url('ritasi/insert') ?>" enctype="multipart/form-data" id="form-ritasi">
-                            <div class="row" style="margin-bottom: 20px;">
+                            <div class="row">
                                 <div class="col-md-3 col-sm-4 col-xs-12">
                                     <label for="metode" class="form-label">Tanggal</label>
                                     <input type="date" class="form-control" name="tanggal" id="tanggal" value="<?php echo date('Y-m-d'); ?>">
@@ -44,9 +44,18 @@
                                     <label for="tanggal" class="form-label">Tanggal</label>
                                     <input type="date" class="form-control" name="tanggal" id="tanggal" value="<?php echo date('Y-m-d'); ?>">
                                 </div> -->
-                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                <!-- <div class="col-md-3 col-sm-4 col-xs-12">
                                     <label for="no_rekening" class="form-label">No. Lambung</label>
                                     <input type="text" class="form-control" name="nomor_lambung" id="nomor_lambung">
+                                </div> -->
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="">Pilih Asset</label>
+                                    <select class="select2 form-control" name="nomor_lambung" id="nomor_lambung">
+                                        <option value="ALL">ALL</option>
+                                        <?php foreach ($asset as $a) : ?>
+                                            <option value="<?= $a->Id ?>"><?= $a->Id ?> - <?= $a->nama_asset ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                                 <div class="col-md-3 col-sm-4 col-xs-12">
                                     <label for="metode" class="form-label">Nama Driver</label>
@@ -70,14 +79,6 @@
                                     <input type="time" class="form-control" name="jam_akhir" id="jam_akhir">
                                 </div>
                                 <div class="col-md-3 col-sm-4 col-xs-12">
-                                    <label for="metode" class="form-label">HM Awal</label>
-                                    <input type="text" class="form-control" name="hm_awal" id="hm_awal">
-                                </div>
-                                <div class="col-md-3 col-sm-4 col-xs-12">
-                                    <label for="metode" class="form-label">HM Akhir</label>
-                                    <input type="text" class="form-control" name="hm_akhir" id="hm_akhir">
-                                </div>
-                                <div class="col-md-3 col-sm-4 col-xs-12">
                                     <label for="metode" class="form-label">KM Awal</label>
                                     <input type="text" class="form-control" name="km_awal" id="km_awal">
                                 </div>
@@ -86,8 +87,28 @@
                                     <input type="text" class="form-control" name="km_akhir" id="km_akhir">
                                 </div>
                                 <div class="col-md-3 col-sm-4 col-xs-12">
-                                    <label for="metode" class="form-label">Harga</label>
-                                    <input type="text" class="form-control" name="harga" id="harga">
+                                    <label for="metode" class="form-label">Total KM</label>
+                                    <input type="text" class="form-control" name="total_km" id="total_km">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Harga KM</label>
+                                    <input type="text" class="form-control" name="harga_km" id="harga_km">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Total Harga KM</label>
+                                    <input type="text" class="form-control" name="total_harga_km" id="total_harga_km">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Total Tonase</label>
+                                    <input type="text" class="form-control" name="total_tonase" id="total_tonase">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Harga Tonase</label>
+                                    <input type="text" class="form-control" name="harga_tonase" id="harga_tonase">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Total Harga Tonase</label>
+                                    <input type="text" class="form-control" name="total_harga_tonase" id="total_harga_tonase">
                                 </div>
                             </div>
                             <div class="row">
@@ -111,9 +132,19 @@
                                     <input type="date" class="form-control" name="tanggal" id="tanggal" value="<?php echo date('Y-m-d'); ?>">
                                 </div> -->
                                 <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="">Pilih Asset</label>
+                                    <select class="select2 form-control" name="nomor_lambung" id="nomor_lambung">
+                                        <option value="ALL">ALL</option>
+                                        <?php foreach ($asset as $a) : ?>
+                                            <option value="<?= $a->Id ?>" <?php if ($ritasi['nomor_lambung'] == $a->Id) echo 'selected'; ?>>
+                                                <?= $a->Id ?> - <?= $a->nama_asset ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <!-- <div class="col-md-3 col-sm-4 col-xs-12">
                                     <label for="no_rekening" class="form-label">No. Lambung</label>
                                     <input type="text" class="form-control" name="nomor_lambung" id="nomor_lambung" value="<?= $ritasi['nomor_lambung'] ?>">
-                                </div>
+                                </div> -->
                                 <div class="col-md-3 col-sm-4 col-xs-12">
                                     <label for="metode" class="form-label">Nama Driver</label>
                                     <input type="text" class="form-control" name="nama_driver" id="nama_driver" value="<?= $ritasi['nama_driver'] ?>">
@@ -136,14 +167,6 @@
                                     <input type="time" class="form-control" name="jam_akhir" id="jam_akhir" value="<?= $ritasi['jam_akhir'] ?>">
                                 </div>
                                 <div class="col-md-3 col-sm-4 col-xs-12">
-                                    <label for="metode" class="form-label">HM Awal</label>
-                                    <input type="text" class="form-control" name="hm_awal" id="hm_awal" value="<?= $ritasi['hm_awal'] ?>">
-                                </div>
-                                <div class="col-md-3 col-sm-4 col-xs-12">
-                                    <label for="metode" class="form-label">HM Akhir</label>
-                                    <input type="text" class="form-control" name="hm_akhir" id="hm_akhir" value="<?= $ritasi['hm_akhir'] ?>">
-                                </div>
-                                <div class="col-md-3 col-sm-4 col-xs-12">
                                     <label for="metode" class="form-label">KM Awal</label>
                                     <input type="text" class="form-control" name="km_awal" id="km_awal" value="<?= $ritasi['km_awal'] ?>">
                                 </div>
@@ -152,8 +175,28 @@
                                     <input type="text" class="form-control" name="km_akhir" id="km_akhir" value="<?= $ritasi['km_akhir'] ?>">
                                 </div>
                                 <div class="col-md-3 col-sm-4 col-xs-12">
-                                    <label for="metode" class="form-label">Harga</label>
-                                    <input type="text" class="form-control" name="harga" id="harga" value="<?= $ritasi['harga'] ?>">
+                                    <label for="metode" class="form-label">Total KM</label>
+                                    <input type="text" class="form-control" name="total_km" id="total_km" value="<?= $ritasi['total_km'] ?>">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Harga KM</label>
+                                    <input type="text" class="form-control" name="harga_km" id="harga_km" value="<?= $ritasi['harga_km'] ?>">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Total Harga KM</label>
+                                    <input type="text" class="form-control" name="total_harga_km" id="total_harga_km" value="<?= $ritasi['total_harga_km'] ?>">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Total KM</label>
+                                    <input type="text" class="form-control" name="total_tonase" id="total_tonase" value="<?= $ritasi['total_tonase'] ?>">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Harga KM</label>
+                                    <input type="text" class="form-control" name="harga_tonase" id="harga_tonase" value="<?= $ritasi['harga_tonase'] ?>">
+                                </div>
+                                <div class="col-md-3 col-sm-4 col-xs-12">
+                                    <label for="metode" class="form-label">Total Harga KM</label>
+                                    <input type="text" class="form-control" name="total_harga_tonase" id="total_harga_tonase" value="<?= $ritasi['total_harga_tonase'] ?>">
                                 </div>
                             </div>
                             <div class="row">
@@ -170,6 +213,8 @@
     </div>
 </div>
 <!-- Finish content-->
+<link rel="stylesheet" href="<?= base_url(); ?>assets/select2/css/select2.min.css">
+<script type="text/javascript" src="<?= base_url(); ?>assets/select2/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
         $('.js-example-basic-multiple').select2();

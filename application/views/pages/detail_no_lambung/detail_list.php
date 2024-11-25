@@ -61,7 +61,7 @@
                         </form>
                     </div>
                     <div id="total_semua" class="col-md-4 col-sm-12 col-xs-12 hidden">
-                        <h2><b>HM : <span id="hm_title">0</span></b></h2>
+                        <h2><b>Tonase : <span id="tonase_title">0</span></b></h2>
                         <br>
 
                         <h2><b>KM : <span id="km_title">0</span></b></h2>
@@ -102,12 +102,12 @@
                                     <th scope="col">Total Harga</th>
                                     <!-- <th scope="col">Harga/Liter</th> -->
                                     <!-- <th scope="col">Tanggal</th> -->
-                                    <th scope="col">HM Awal</th>
-                                    <th scope="col">HM Akhir</th>
-                                    <th scope="col">HM</th>
                                     <th scope="col">KM Awal</th>
                                     <th scope="col">KM Akhir</th>
-                                    <th scope="col">KM</th>
+                                    <th scope="col">Total KM</th>
+                                    <th scope="col">Total Harga KM</th>
+                                    <th scope="col">Total Tonase</th>
+                                    <th scope="col">Total Harga Tonase</th>
                                     <th scope="col">Total Harga BBM</th>
                                     <th scope="col">Total BBM (Liter)</th>
                                 </tr>
@@ -150,6 +150,16 @@
             placeholder: "Select an asset", // Optional: adds a placeholder
             allowClear: true // Optional: adds a clear option
         });
+        // Get the current date
+        var currentDate = new Date();
+
+        // Set the current year
+        var currentYear = currentDate.getFullYear();
+        $('#tahun_cari').val(currentYear);
+
+        // Set the current month (JavaScript months are zero-indexed, so we add 1)
+        var currentMonth = currentDate.getMonth() + 1;
+        $('#bulan_cari').val(currentMonth);
     });
 
     function cariData() {
@@ -194,7 +204,7 @@
                         const tableBody = $('table tbody');
                         tableBody.empty();
 
-                        let total_hm = 0;
+                        let total_tonase = 0;
                         let total_km = 0;
                         let total_biaya_semua = 0;
 
@@ -231,12 +241,12 @@
                                                                         <td>${item.nama_asset || 'N/A'}</td>
                                                                         <td>${additionalData_sparepart.jumlah_part !== null ? Math.floor(additionalData_sparepart.jumlah_part).toLocaleString('id-ID') : 'N/A'}</td>
                                                                         <td>Rp. ${additionalData_sparepart.harga_part !== null ? Math.floor(additionalData_sparepart.harga_part).toLocaleString('id-ID') : 'N/A'}</td>
-                                                                        <td>${additionalData_tonase.hm_awal !== null ? Math.floor(additionalData_tonase.hm_awal).toLocaleString('id-ID') : 'N/A'}</td>
-                                                                        <td>${additionalData_tonase.hm_akhir !== null ? Math.floor(additionalData_tonase.hm_akhir).toLocaleString('id-ID') : 'N/A'}</td>
-                                                                        <td>${additionalData_tonase.hm_difference !== null ? Math.floor(additionalData_tonase.hm_difference).toLocaleString('id-ID') : 'N/A'}</td>
                                                                         <td>${additionalData_tonase.km_awal !== null ? Math.floor(additionalData_tonase.km_awal).toLocaleString('id-ID') : 'N/A'}</td>
                                                                         <td>${additionalData_tonase.km_akhir !== null ? Math.floor(additionalData_tonase.km_akhir).toLocaleString('id-ID') : 'N/A'}</td>
-                                                                        <td>${additionalData_tonase.km_difference !== null ? Math.floor(additionalData_tonase.km_difference).toLocaleString('id-ID') : 'N/A'}</td>
+                                                                        <td>${additionalData_tonase.total_km !== null ? Math.floor(additionalData_tonase.total_km).toLocaleString('id-ID') : 'N/A'}</td>
+                                                                        <td>Rp. ${additionalData_tonase.total_harga_km !== null ? Math.floor(additionalData_tonase.total_harga_km).toLocaleString('id-ID') : 'N/A'}</td>
+                                                                        <td>${additionalData_tonase.total_tonase !== null ? Math.floor(additionalData_tonase.total_tonase).toLocaleString('id-ID') : 'N/A'}</td>
+                                                                        <td>Rp. ${additionalData_tonase.total_harga_tonase !== null ? Math.floor(additionalData_tonase.total_harga_tonase).toLocaleString('id-ID') : 'N/A'}</td>
                                                                         <td>Rp. ${additionalData_bbm.total_harga !== null ? Math.floor(additionalData_bbm.total_harga).toLocaleString('id-ID') : 'N/A'}</td>
                                                                         <td>${additionalData_bbm.total_liter !== null ? Math.floor(additionalData_bbm.total_liter).toLocaleString('id-ID') + ' Liter' : 'N/A'}</td>
                                                                     </tr>
@@ -245,11 +255,11 @@
                                                                     $('table tbody').append(row);
 
                                                                     // Accumulate values, ensuring they are rounded and avoiding `NaN` with `|| 0`
-                                                                    total_hm += Math.round(additionalData_tonase.hm_difference || 0);
-                                                                    total_km += Math.round(additionalData_tonase.km_difference || 0);
+                                                                    total_tonase += Math.round(additionalData_tonase.total_tonase || 0);
+                                                                    total_km += Math.round(additionalData_tonase.total_km || 0);
 
                                                                     // Calculate `total_biaya` and ensure it’s rounded
-                                                                    const total_biaya = Math.round((parseFloat(additionalData_sparepart.harga_part) || 0) + (parseFloat(additionalData_bbm.total_harga) || 0));
+                                                                    const total_biaya = Math.round((parseFloat(additionalData_sparepart.harga_part) || 0) + (parseFloat(additionalData_bbm.total_harga) || 0) + (parseFloat(additionalData_tonase.total_harga_km) || 0));
                                                                     // Add `total_biaya` to `total_biaya_semua` and round to prevent floating-point issues
                                                                     total_biaya_semua += total_biaya;
 
@@ -277,10 +287,10 @@
 
                         Promise.all(requests).then(() => {
 
-                            $('#hm_title').text(total_hm.toLocaleString('id-ID') || 'N/A');
+                            $('#tonase_title').text(total_tonase.toLocaleString('id-ID') || 'N/A');
                             $('#km_title').text(total_km.toLocaleString('id-ID') || 'N/A');
 
-                            $('#total_biaya_title').text(Math.round(total_biaya_semua).toLocaleString('id-ID') || 'N/A');
+                            $('#total_biaya_title').text('Rp. ' + Math.round(total_biaya_semua).toLocaleString('id-ID') || 'N/A');
                             $('#total_semua').removeClass('hidden');
                             $('#total_semua').addClass('show');
 

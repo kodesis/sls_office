@@ -119,6 +119,11 @@ class Ritasi extends CI_Controller
         $result4 = $res4[0]['COUNT(Id)'];
         $data['count_inbox2'] = $result4;
 
+        $this->db->select('Id, nama_asset');
+        $this->db->from('asset_list');
+        $asset = $this->db->get()->result();
+        $data['asset'] = $asset;
+
         $data['title'] = "Create Ritasi";
         $data['pages'] = "pages/ritasi/ritasi_form";
         $this->load->view('index', $data);
@@ -134,12 +139,15 @@ class Ritasi extends CI_Controller
         $shift = $this->input->post('shift');
         $jam_awal = $this->input->post('jam_awal');
         $jam_akhir = $this->input->post('jam_akhir');
-        $hm_awal = $this->input->post('hm_awal');
-        $hm_akhir = $this->input->post('hm_akhir');
         $km_awal = $this->input->post('km_awal');
         $km_akhir = $this->input->post('km_akhir');
-        $harga = $this->input->post('harga');
+        $total_km = $this->input->post('total_km');
+        $harga_km = $this->input->post('harga_km');
+        $total_harga_km = $this->input->post('total_harga_km');
 
+        $total_tonase = $this->input->post('total_tonase');
+        $harga_tonase = $this->input->post('harga_tonase');
+        $total_harga_tonase = $this->input->post('total_harga_tonase');
         $now = date('Y-m-d H:i:s');
 
         $this->form_validation->set_rules('tanggal', 'Tanggal', 'required');
@@ -148,10 +156,14 @@ class Ritasi extends CI_Controller
         $this->form_validation->set_rules('shift', 'Shift', 'required');
         $this->form_validation->set_rules('jam_awal', 'Jam Awal', 'required');
         $this->form_validation->set_rules('jam_akhir', 'Jam Akhir', 'required');
-        $this->form_validation->set_rules('hm_awal', 'HM Awal', 'required');
-        $this->form_validation->set_rules('hm_akhir', 'HM Akhir', 'required');
         $this->form_validation->set_rules('km_awal', 'KM Awal', 'required');
         $this->form_validation->set_rules('km_akhir', 'KM Akhir', 'required');
+        $this->form_validation->set_rules('total_km', 'Total KM', 'required');
+        $this->form_validation->set_rules('harga_km', 'Harga KM', 'required');
+        $this->form_validation->set_rules('total_harga_km', 'Total Harga KM', 'required');
+        $this->form_validation->set_rules('total_tonase', 'Total Tonase', 'required');
+        $this->form_validation->set_rules('harga_tonase', 'Harga Tonase', 'required');
+        $this->form_validation->set_rules('total_harga_tonase', 'Total Harga Tonase', 'required');
 
         if (strtotime($tanggal) != strtotime($now)) {
             $created_at = $tanggal;
@@ -168,11 +180,15 @@ class Ritasi extends CI_Controller
             'shift' => $shift,
             'jam_awal' => $jam_awal,
             'jam_akhir' => $jam_akhir,
-            'hm_awal' => $hm_awal,
-            'hm_akhir' => $hm_akhir,
             'km_awal' => $km_awal,
             'km_akhir' => $km_akhir,
-            'harga' => $harga,
+            'total_km' => $total_km,
+            'harga_km' => $harga_km,
+            'total_harga_km' => $total_harga_km,
+
+            'total_tonase' => $total_tonase,
+            'harga_tonase' => $harga_tonase,
+            'total_harga_tonase' => $total_harga_tonase,
         ];
 
         $this->cb->insert('t_ritasi', $ritasi);
@@ -211,6 +227,13 @@ class Ritasi extends CI_Controller
         $result4 = $res4[0]['COUNT(Id)'];
         $data['count_inbox2'] = $result4;
 
+
+        $this->db->select('Id, nama_asset');
+        $this->db->from('asset_list');
+        $asset = $this->db->get()->result();
+        $data['asset'] = $asset;
+
+
         $data['ritasi'] = $this->cb->get_where('t_ritasi', ['id' => $id])->row_array();
         $data['title'] = "Update Ritasi";
         $data['pages'] = "pages/ritasi/ritasi_form";
@@ -227,11 +250,15 @@ class Ritasi extends CI_Controller
         $shift = $this->input->post('shift');
         $jam_awal = $this->input->post('jam_awal');
         $jam_akhir = $this->input->post('jam_akhir');
-        $hm_awal = $this->input->post('hm_awal');
-        $hm_akhir = $this->input->post('hm_akhir');
         $km_awal = $this->input->post('km_awal');
         $km_akhir = $this->input->post('km_akhir');
-        $harga = $this->input->post('harga');
+        $total_km = $this->input->post('total_km');
+        $harga_km = $this->input->post('harga_km');
+        $total_harga_km = $this->input->post('total_harga_km');
+
+        $total_tonase = $this->input->post('total_tonase');
+        $harga_tonase = $this->input->post('harga_tonase');
+        $total_harga_tonase = $this->input->post('total_harga_tonase');
 
         $now = date('Y-m-d H:i:s');
 
@@ -241,10 +268,14 @@ class Ritasi extends CI_Controller
         $this->form_validation->set_rules('shift', 'Shift', 'required');
         $this->form_validation->set_rules('jam_awal', 'Jam Awal', 'required');
         $this->form_validation->set_rules('jam_akhir', 'Jam Akhir', 'required');
-        $this->form_validation->set_rules('hm_awal', 'HM Awal', 'required');
-        $this->form_validation->set_rules('hm_akhir', 'HM Akhir', 'required');
         $this->form_validation->set_rules('km_awal', 'KM Awal', 'required');
         $this->form_validation->set_rules('km_akhir', 'KM Akhir', 'required');
+        $this->form_validation->set_rules('total_km', 'Total KM', 'required');
+        $this->form_validation->set_rules('harga_km', 'Harga KM', 'required');
+        $this->form_validation->set_rules('total_harga_km', 'Total Harga KM', 'required');
+        $this->form_validation->set_rules('total_tonase', 'Total Tonase', 'required');
+        $this->form_validation->set_rules('harga_tonase', 'Harga Tonase', 'required');
+        $this->form_validation->set_rules('total_harga_tonase', 'Total Harga Tonase', 'required');
 
         // if (strtotime($tanggal) != strtotime($now)) {
         //     $created_at = $tanggal;
@@ -261,11 +292,15 @@ class Ritasi extends CI_Controller
             'shift' => $shift,
             'jam_awal' => $jam_awal,
             'jam_akhir' => $jam_akhir,
-            'hm_awal' => $hm_awal,
-            'hm_akhir' => $hm_akhir,
             'km_awal' => $km_awal,
             'km_akhir' => $km_akhir,
-            'harga' => $harga,
+            'total_km' => $total_km,
+            'harga_km' => $harga_km,
+            'total_harga_km' => $total_harga_km,
+
+            'total_tonase' => $total_tonase,
+            'harga_tonase' => $harga_tonase,
+            'total_harga_tonase' => $total_harga_tonase,
         ];
         $this->cb->where(['id' => $id]);
         $this->cb->update('t_ritasi', $ritasi);
@@ -300,16 +335,50 @@ class Ritasi extends CI_Controller
         $lokasi_loading = $this->input->post('lokasi_loading');
         $tujuan = $this->input->post('tujuan');
         $jam = $this->input->post('jam');
-        $hm = $this->input->post('hm');
+        $berat_awal = $this->input->post('berat_awal');
+        $berat_akhir = $this->input->post('berat_akhir');
         $km = $this->input->post('km');
+
+        $total_berat = $berat_awal - $berat_akhir;
 
         $now = date('Y-m-d H:i:s');
 
         $this->form_validation->set_rules('lokasi_loading', 'Lokasi Loading', 'required');
         $this->form_validation->set_rules('tujuan', 'Tujuan', 'required');
         $this->form_validation->set_rules('jam', 'Jam', 'required');
-        $this->form_validation->set_rules('hm', 'HM', 'required');
+        $this->form_validation->set_rules('berat_awal', 'Berat Awal', 'required');
+        $this->form_validation->set_rules('berat_akhir', 'Berat Akhir', 'required');
         $this->form_validation->set_rules('km', 'KM', 'required');
+
+        $this->cb->where('id_ritasi_header', $id_header);
+        $cek = $this->cb->get('t_detail_ritasi')->result();
+
+        if (empty($cek)) {
+            // Fetch details from 't_ritasi' if no records are found
+            $detail = $this->cb->get_where('t_ritasi', ['id' => $id_header])->row_array();
+            if ($detail && isset($detail['km_awal'])) {
+                $km_awal = $detail['km_awal'];
+                $total_km = $km - $km_awal; // Ensure $km is defined
+            } else {
+                // Handle missing data
+                $total_km = 0; // Default value or handle appropriately
+            }
+        } else {
+            // Fetch the latest record from 't_detail_ritasi'
+            $this->cb->where('id_ritasi_header', $id_header);
+            $this->cb->order_by('id', 'DESC'); // Ensure 'id' or relevant column exists
+            $this->cb->limit(1);
+            $detail = $this->cb->get('t_detail_ritasi')->row();
+
+            if ($detail && isset($detail->km)) {
+                $km_awal = $detail->km; // Use '->km' since it returns an object
+                $total_km = $km - $km_awal; // Ensure $km is defined
+            } else {
+                // Handle missing data
+                $total_km = 0; // Default value or handle appropriately
+            }
+        }
+
 
         // $user = $this->db->get_where('users', ['nip' => $this->session->userdata('nip')])->row_array();
         $ritasi = [
@@ -318,11 +387,63 @@ class Ritasi extends CI_Controller
             // 'user_nip' => $user['nip'],
             'tujuan' => $tujuan,
             'jam' => $jam,
-            'hm' => $hm,
+            'berat_awal' => $berat_awal,
+            'berat_akhir' => $berat_akhir,
+            'total_tonase' => $total_berat,
             'km' => $km,
+            'total_km' => $total_km,
         ];
 
         $this->cb->insert('t_detail_ritasi', $ritasi);
+
+
+        $this->cb->select('SUM(total_tonase) as total_tonase, SUM(total_km) as total_km');
+        $this->cb->where('id_ritasi_header', $id_header);
+        $detail = $this->cb->get('t_detail_ritasi')->row();
+        if ($detail) {
+            // Fetch utility data
+            $cari_harga = $this->db->get_where('utility', ['Id' => 1])->row();
+            if ($cari_harga) {
+                $harga_km = $cari_harga->km ?? 0; // Default to 0 if not set
+                $harga_tonase = $cari_harga->tonase ?? 0;
+
+                // Calculate totals
+                $total_harga_km = ($detail->total_km ?? 0) * $harga_km;
+                $total_harga_tonase = ($detail->total_tonase ?? 0) * $harga_tonase;
+
+                // Prepare data for update
+                $ritasi = [
+                    'km_akhir' => $km,
+
+                    'total_km' => $detail->total_km ?? 0,
+                    'harga_km' => $harga_km,
+                    'total_harga_km' => $total_harga_km,
+
+                    'total_tonase' => $detail->total_tonase ?? 0,
+                    'harga_tonase' => $harga_tonase,
+                    'total_harga_tonase' => $total_harga_tonase,
+                ];
+
+                // Update the 't_ritasi' table
+                $this->cb->where(['id' => $id_header]);
+                $this->cb->update('t_ritasi', $ritasi);
+            } else {
+                // Handle missing 'utility' data
+                $response = [
+                    'success' => False,
+                    'msg' => 'Harga Tidak Di Temukan'
+                ];
+                echo json_encode($response);
+            }
+        } else {
+            // Handle missing 't_detail_ritasi' data
+            $response = [
+                'success' => False,
+                'msg' => 'Shift Tidak Ditemukan'
+            ];
+            echo json_encode($response);
+        }
+
 
         $response = [
             'success' => true,
