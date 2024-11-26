@@ -29,7 +29,9 @@ class Financial extends CI_Controller
     //     $this->M_Logging->add_log($user_id, $action, $tableName, $record_id);
     // }
 
-    public function index() {}
+    public function index()
+    {
+    }
 
     public function financial_entry($jenis = NULL)
     {
@@ -384,9 +386,6 @@ class Financial extends CI_Controller
 
     public function approve_fe($slug)
     {
-        print_r($slug);
-        exit;
-
         $nip = $this->session->userdata('nip');
         $fe = $this->m_invoice->detail_fe($slug);
 
