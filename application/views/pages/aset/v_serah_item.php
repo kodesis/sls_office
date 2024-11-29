@@ -30,6 +30,7 @@
                 <thead>
                   <tr>
                     <th>Item</th>
+                    <th>Asset</th>
                     <th>Qty</th>
                     <th>Harga</th>
                     <th>Total</th>
@@ -42,6 +43,7 @@
                   $item = $this->cb->get_where('t_ro_detail', ['no_ro' => $ro['Id']])->result_array();
                   foreach ($item as $key => $i) {
                     $detail = $this->db->get_where('item_list', ['Id' => $i['item']])->row_array();
+                    $asset = $this->db->get_where('asset_list', ['Id' => $i['asset']])->row_array();
                     $this->db->where(['kode_item' => $detail['Id'], 'status' => 'A']);
                     $this->db->order_by('tanggal_masuk', 'ASC');
                     $item_detail = $this->db->get('item_detail')->result_array();
@@ -65,6 +67,7 @@
                           </select>
                         </div>
                       </td>
+                      <td><?= $asset['nama_asset'] ?></td>
                       <td><?= $i['qty'] ?></td>
                       <td><?= number_format($i['price']) ?></td>
                       <td><?= number_format($i['total']) ?></td>

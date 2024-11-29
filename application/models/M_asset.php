@@ -17,9 +17,9 @@ class M_asset extends CI_Model
 	{
 		if ($search) {
 			// $sql = "SELECT * FROM item_list WHERE nama LIKE '%$search%' OR nomor LIKE '%$search%' ORDER BY Id DESC limit " . $start . ", " . $limit;
-			$sql = "SELECT item_list.*, item_jenis.nama_jenis FROM item_list LEFT JOIN item_jenis ON item_list.jenis_item = item_jenis.Id WHERE item_list.nama LIKE '%$search%' OR item_list.nomor LIKE '%$search%' ORDER BY Id DESC limit " . $start . ", " . $limit;
+			$sql = "SELECT item_list.*, item_jenis.nama_jenis FROM item_list LEFT JOIN item_jenis ON item_list.jenis_item = item_jenis.Id WHERE item_list.nama LIKE '%$search%' OR item_list.nomor LIKE '%$search%' ORDER BY item_list.nama ASC limit " . $start . ", " . $limit;
 		} else {
-			$sql = "SELECT item_list.*, item_jenis.nama_jenis FROM item_list LEFT JOIN item_jenis ON item_list.jenis_item = item_jenis.Id ORDER BY Id DESC limit " . $start . ", " . $limit;
+			$sql = "SELECT item_list.*, item_jenis.nama_jenis FROM item_list LEFT JOIN item_jenis ON item_list.jenis_item = item_jenis.Id ORDER BY item_list.nama ASC limit " . $start . ", " . $limit;
 		}
 		$query = $this->db->query($sql);
 		return $query->result();

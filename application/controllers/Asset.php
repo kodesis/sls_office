@@ -2281,15 +2281,15 @@ class Asset extends CI_Controller
 				$stok_awal[] = $item_list[$i]['stok'];
 				$stok_akhir[] = $stok_awal[$i] - $item[$i]['qty'];
 
-				// if (count($detail_item[$i]) != $item[$i]['qty']) {
-				// 	$response = [
-				// 		'success' => false,
-				// 		'msg' => 'Jumlah barang ' . $item_list[$i]['nama'] . ' tidak sesuai dengan jumlah permintaan!'
-				// 	];
+				if ($stok_akhir[$i] < 0) {
+					$response = [
+						'success' => false,
+						'msg' => 'Stok ' . $item_list[$i]['nama'] . ' Tidak Tersedia Lagi'
+					];
 
-				// 	echo json_encode($response);
-				// 	return false;
-				// }
+					echo json_encode($response);
+					return false;
+				}
 
 				// update stok item list
 				$this->db->where('Id', $item[$i]['item']);
