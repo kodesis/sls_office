@@ -159,6 +159,7 @@
                         <!--li><a href="<?php echo base_url(); ?>app/slip_gaji_pdf">Slip Gaji</a></li-->
                         <li><a href="<?php echo base_url(); ?>app/user">User</a></li>
                     <?php } ?>
+                    <li><a href="<?php echo base_url(); ?>driver/list">Driver</a></li>
                     <?php $a = $this->session->userdata('level');
                     if (strpos($a, '302') !== false) { ?>
                         <li><a href="<?php echo base_url(); ?>cuti/view">Cuti</a></li>

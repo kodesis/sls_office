@@ -46,11 +46,27 @@
                                     </tr>
                                     <?php } else {
                                     $no = 1;
-                                    foreach ($ritasi as $value) {  ?>
+                                    foreach ($ritasi as $value) {
+                                        $this->db->select('nama_asset');
+                                        $this->db->from('asset_list');
+                                        $this->db->where('Id', $value['nomor_lambung']);
+                                        $get_aset = $this->db->get()->row();
+                                        $nama_asset = $get_aset->nama_asset;
+
+
+                                        $this->db->select('nama');
+                                        $this->db->from('driver');
+                                        $this->db->where('id', $value['id_driver']);
+                                        $get_driver = $this->db->get()->row();
+                                        $nama_driver = null;
+                                        if ($get_driver) {
+                                            $nama_driver = $get_driver->nama;
+                                        }
+                                    ?>
                                         <tr>
                                             <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $no ?></a></td>
-                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $value['nomor_lambung'] ?></a></td>
-                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $value['nama_driver'] ?></a></td>
+                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $nama_asset ?></a></td>
+                                            <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $nama_driver ?></a></td>
                                             <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $value['tanggal'] ?></a></td>
                                             <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $value['shift'] ?></a></td>
                                             <td scope="row"><a class="clickable_table" onclick="Lihat_Detail(<?= $value['Id'] ?>)"><?= $value['jam_awal'] ?> - <?= $value['jam_akhir'] ?></a></td>
@@ -218,7 +234,9 @@
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <th colspan="7"></th>
+                                    <th colspan="5"></th>
+                                    <th scope="col">Total</th>
+                                    <th scope="col" id="total_tonase_table">0</th>
                                     <th scope="col">Total</th>
                                     <th scope="col" id="total_km_table">0</th>
                                 </tr>
@@ -361,6 +379,7 @@
         tableBody.innerHTML = ""; // Clear existing rows
         var no = 1;
         let totalKm = 0; // Variable to store the sum of 'km'
+        let totalTonase = 0; // Variable to store the sum of 'km'
         data.forEach(item => {
             const row = document.createElement("tr");
 
@@ -381,10 +400,12 @@
         `;
 
             totalKm += parseFloat(item.total_km) || 0;
+            totalTonase += parseFloat(item.total_tonase) || 0;
 
             no++;
             tableBody.appendChild(row);
         });
+        $('#total_tonase_table').text(totalTonase); // Update the total km value in the table
         $('#total_km_table').text(totalKm); // Update the total km value in the table
     }
 

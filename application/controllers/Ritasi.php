@@ -124,6 +124,11 @@ class Ritasi extends CI_Controller
         $asset = $this->db->get()->result();
         $data['asset'] = $asset;
 
+        $this->db->select('id, nama, nip');
+        $this->db->from('driver');
+        $driver = $this->db->get()->result();
+        $data['driver'] = $driver;
+
         $data['title'] = "Create Ritasi";
         $data['pages'] = "pages/ritasi/ritasi_form";
         $this->load->view('index', $data);
@@ -140,14 +145,14 @@ class Ritasi extends CI_Controller
         $jam_awal = $this->input->post('jam_awal');
         $jam_akhir = $this->input->post('jam_akhir');
         $km_awal = $this->input->post('km_awal');
-        $km_akhir = $this->input->post('km_akhir');
-        $total_km = $this->input->post('total_km');
-        $harga_km = $this->input->post('harga_km');
-        $total_harga_km = $this->input->post('total_harga_km');
+        // $km_akhir = $this->input->post('km_akhir');
+        // $total_km = $this->input->post('total_km');
+        // $harga_km = $this->input->post('harga_km');
+        // $total_harga_km = $this->input->post('total_harga_km');
 
-        $total_tonase = $this->input->post('total_tonase');
-        $harga_tonase = $this->input->post('harga_tonase');
-        $total_harga_tonase = $this->input->post('total_harga_tonase');
+        // $total_tonase = $this->input->post('total_tonase');
+        // $harga_tonase = $this->input->post('harga_tonase');
+        // $total_harga_tonase = $this->input->post('total_harga_tonase');
         $now = date('Y-m-d H:i:s');
 
         $this->form_validation->set_rules('tanggal', 'Tanggal', 'required');
@@ -175,20 +180,20 @@ class Ritasi extends CI_Controller
         $ritasi = [
             'nomor_lambung' => $nomor_lambung,
             // 'user_nip' => $user['nip'],
-            'nama_driver' => $nama_driver,
+            'id_driver' => $nama_driver,
             'tanggal' => $created_at,
             'shift' => $shift,
             'jam_awal' => $jam_awal,
             'jam_akhir' => $jam_akhir,
             'km_awal' => $km_awal,
-            'km_akhir' => $km_akhir,
-            'total_km' => $total_km,
-            'harga_km' => $harga_km,
-            'total_harga_km' => $total_harga_km,
+            // 'km_akhir' => $km_akhir,
+            // 'total_km' => $total_km,
+            // 'harga_km' => $harga_km,
+            // 'total_harga_km' => $total_harga_km,
 
-            'total_tonase' => $total_tonase,
-            'harga_tonase' => $harga_tonase,
-            'total_harga_tonase' => $total_harga_tonase,
+            // 'total_tonase' => $total_tonase,
+            // 'harga_tonase' => $harga_tonase,
+            // 'total_harga_tonase' => $total_harga_tonase,
         ];
 
         $this->cb->insert('t_ritasi', $ritasi);
@@ -233,6 +238,10 @@ class Ritasi extends CI_Controller
         $asset = $this->db->get()->result();
         $data['asset'] = $asset;
 
+        $this->db->select('id, nama, nip');
+        $this->db->from('driver');
+        $driver = $this->db->get()->result();
+        $data['driver'] = $driver;
 
         $data['ritasi'] = $this->cb->get_where('t_ritasi', ['id' => $id])->row_array();
         $data['title'] = "Update Ritasi";
@@ -287,7 +296,7 @@ class Ritasi extends CI_Controller
         $ritasi = [
             'nomor_lambung' => $nomor_lambung,
             // 'user_nip' => $user['nip'],
-            'nama_driver' => $nama_driver,
+            'id_driver' => $nama_driver,
             'tanggal' => $tanggal,
             'shift' => $shift,
             'jam_awal' => $jam_awal,
