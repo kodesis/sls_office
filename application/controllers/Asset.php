@@ -2386,6 +2386,7 @@ class Asset extends CI_Controller
 					'harga' => $item[$i]['price'],
 					'jml' => $item[$i]['qty'],
 					'status' => 1,
+					'tanggal' => $date_serah,
 					'user' => $ro['user'],
 					'user_serah' => $this->session->userdata('nip'),
 					'penerima' => $ro['teknisi'],
@@ -3149,7 +3150,7 @@ class Asset extends CI_Controller
 		$dari = $this->input->post('dari');
 		$sampai = $this->input->post('sampai');
 
-		$sql = "SELECT * FROM working_supply WHERE asset_id = '$item' and (tanggal >= '$dari' OR tanggal <= '$sampai')";
+		$sql = "SELECT * FROM working_supply WHERE asset_id = '$item' and (tanggal >= '$dari' AND tanggal <= '$sampai')";
 		$data['report'] = $this->db->query($sql)->result_array();
 		$data['asset'] = $this->db->get_where('asset_list', ['Id' => $item])->row_array();
 		$file_pdf = 'Penggunaan Asset . ' . $data['asset']['nama_asset'];
