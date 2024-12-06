@@ -2,6 +2,7 @@ $(document).ready(function () {
 	$(".uang").mask("000.000.000.000.000", {
 		reverse: true,
 	});
+
 	updateTotalItem();
 
 	$("select[name='direksi']").change(function () {
@@ -30,22 +31,8 @@ $(document).ready(function () {
 		function () {
 			var value = $(this).val();
 			var row = $(this).closest(".baris");
-			var row_out = $(this).closest(".baris-out");
 			hitungTotal(row);
-			hitungTotalOut(row_out);
 			updateTotalItem();
-			updateTotalItemOut();
-		}
-	);
-
-	$(document).on(
-		"input",
-		'input[name="qty_out[]"], input[name="harga_out[]"]',
-		function () {
-			var value = $(this).val();
-			var row_out = $(this).closest(".baris-out");
-			hitungTotalOut(row_out);
-			updateTotalItemOut();
 		}
 	);
 
@@ -150,20 +137,6 @@ function hitungTotal(row) {
 	updateTotalItem();
 }
 
-function hitungTotalOut(row) {
-	var qty = row.find('input[name="qty_out[]"]').val().replace(/\./g, ""); // Hapus tanda titik
-	var harga = row.find('input[name="harga_out[]"]').val().replace(/\./g, ""); // Hapus tanda titik
-	qty = parseInt(qty); // Ubah string ke angka float
-	harga = parseInt(harga); // Ubah string ke angka float
-
-	qty = isNaN(qty) ? 0 : qty;
-	harga = isNaN(harga) ? 0 : harga;
-
-	var total = qty * harga;
-	row.find('input[name="total_out[]"]').val(formatNumber(total));
-	updateTotalItemOut();
-}
-
 function updateTotalItem() {
 	var total_pos_fix = 0;
 	$(".baris").each(function () {
@@ -175,24 +148,4 @@ function updateTotalItem() {
 		}
 	});
 	$("#nominal").val(formatNumber(total_pos_fix)); // Atur nilai input #nominal dengan total_pos_fix
-}
-
-function updateTotalItemOut() {
-	var total_pos_fix = 0;
-	$(".baris-out").each(function () {
-		var total = $(this)
-			.find('input[name="total_out[]"]')
-			.val()
-			.replace(/\./g, ""); // Ambil nilai total dari setiap baris
-		total = parseFloat(total); // Ubah string ke angka float
-		if (!isNaN(total)) {
-			// Pastikan total adalah angka
-			total_pos_fix += total; // Tambahkan nilai total ke total_pos_fix
-		}
-	});
-	$("#nominal").val(formatNumber(total_pos_fix)); // Atur nilai input #nominal dengan total_pos_fix
-}
-
-function formatNumber(number) {
-	return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
