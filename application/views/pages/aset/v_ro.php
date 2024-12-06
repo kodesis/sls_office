@@ -46,7 +46,7 @@
                 </div>
               </div>
               <div class="table-responsive">
-                <table class="table table-bordered" id="item">
+                <table class="table table-bordered" id="item-out">
                   <div class="items">
                     <tr class="baris-out">
                       <input type="hidden" name="row[]" id="row">
@@ -55,7 +55,7 @@
                           <div>
                             <label for="asset" class="form-label">Asset</label>
                           </div>
-                          <select name="asset[]" id="asset-0" class="form-control select2">
+                          <select name="asset[]" id="asset-0" class="form-control asset select2">
                             <option value=""> :: Pilih Asset :: </option>
                             <?php
                             $asset = $this->db->get('asset_list')->result_array();
@@ -69,7 +69,7 @@
                           <div>
                             <label for="item" class="form-label">Item</label>
                           </div>
-                          <select name="item[]" id="item-0" class="form-control item-out" width="100%">
+                          <select name="item[]" id="item-0" class="form-control item-out select2" width="100%">
                             <option value=""> :: Pilih Item :: </option>
                             <?php foreach ($item_list->result_array() as $il) { ?>
                               <option value="<?= $il['Id'] ?>"><?= $il['nama'] . " | " . $il['nomor'] ?></option>
@@ -113,21 +113,17 @@
                         <textarea name="ket[]" id="ket-0" class="form-control"></textarea>
                       </td>
                       <td>
-                        <button type="button" class="btn btn-danger remove-form-out" style="margin-top: 20px;"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                        <button type="button" class="btn btn-danger btn-xs remove-form-out" style="margin-top: 20px;"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                        <button type="button" class="btn btn-success btn-xs add-more-form-out"><i class="fa fa-plus" aria-hidden="true"></i></button>
                       </td>
                     </tr>
                   </div>
                   <tr align="right">
                     <td colspan="3">TOTAL</td>
                     <td>
-                      <input type="text" class="form-control" readonly name="nominal" id="nominal">
+                      <input type="text" class="form-control" readonly name="nominal-out" id="nominal-out">
                     </td>
                     <td></td>
-                  </tr>
-                  <tr>
-                    <td colspan="5">
-                      <button type="button" class="btn btn-success btn-sm" id="add-more-form-out">Add new row</button>
-                    </td>
                   </tr>
                 </table>
               </div>
@@ -139,88 +135,109 @@
               </div>
             </form>
           <?php } else { ?>
-            <form class="form-horizontal form-label-left" method="POST" action="<?= base_url('pengajuan/update/' . $this->uri->segment(3)) ?>" enctype="multipart/form-data" id="form-pengajuan">
+            <form class="form-horizontal form-label-left input_mask" method="POST" action="<?= base_url('asset/simpan_update_ro/' . $ro['Id']) ?>" enctype="multipart/form-data" id="form-po">
               <div class="row" style="margin-bottom: 30px">
-                <div class="col-md-2">
+                <div class="col-md-3 col-sm-6 col-xs-12">
                   <label for="tanggal" class="form-label">Tanggal</label>
-                  <input type="date" class="form-control" name="tanggal" id="tanggal" value="<?= date('Y-m-d', strtotime($pengajuan['created_at'])); ?>">
+                  <input type="date" class="form-control" name="tanggal" id="tanggal" value="<?php echo date('Y-m-d', strtotime($ro['tgl_pengajuan'])); ?>">
                 </div>
-                <div class="col-md-3">
-                  <label for="no_rekening" class="form-label">No. Rekening</label>
-                  <input type="text" class="form-control" name="rekening" id="rekening" value="<?= $pengajuan['no_rekening'] ?>">
-                </div>
-                <div class="col-md-3">
-                  <label for="metode" class="form-label">Metode Pembayaran</label>
-                  <select name="metode" id="metode" class="form-control">
-                    <option value=""> -- Pilih Metode Pembayaran -- </option>
-                    <option value="Reimburse" <?= $pengajuan['metode_pembayaran'] == 'Reimburse' ? 'selected' : '' ?>>Reimburse</option>
-                    <option value="Transfer" <?= $pengajuan['metode_pembayaran'] == 'Transfer' ? 'selected' : '' ?>>Transfer</option>
-                  </select>
-                </div>
-                <div class="col-md-4">
-                  <label for="bukti" class="form-label">File Bukti</label>
-                  <input type="file" class="form-control" name="bukti" id="bukti">
-                  <span>Attacment : <?= $pengajuan['bukti_pengajuan'] ?></span>
-                </div>
-                <div class="col-md-12">
-                  <label for="catatan" class="form-label">Catatan</label>
-                  <textarea name="catatan" id="catatan" class="form-control"><?= $pengajuan['catatan'] ?></textarea>
+                <div class="col-md-4 col-sm-6 col-xs-12">
+                  <label for="teknisi" class="form-label">Nama Teknisi</label>
+                  <input type="text" class="form-control" name="teknisi" id="teknisi" value="<?= $ro['teknisi'] ?>">
                 </div>
               </div>
-              <table class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>Total</th>
-                    <th>#</th>
-                  </tr>
-                </thead>
-                <tbody>
+              <div class="table-responsive">
+                <table class="table table-bordered" id="item-out">
                   <?php
-                  $detail = $this->cb->get_where('t_pengajuan_detail', ['no_pengajuan' => $pengajuan['no_pengajuan']])->result_array();
-                  foreach ($detail as $data) {
+                  $i = 1;
+                  $ro_detail = $this->cb->get_where('t_ro_detail', ['no_ro' => $ro['Id']])->result_array();
+                  foreach ($ro_detail as $rd) {
                   ?>
-                    <tr class="baris">
-                      <td>
-                        <input type="hidden" name="row[]" id="row">
-                        <input type="hidden" class="form-control" name="id_item[]" id="id_item" value="<?= $data['Id'] ?>" readonly>
-                        <input type="text" class="form-control" name="item[]" id="item" value="<?= $data['item'] ?>">
+                    <tr class="baris-out">
+                      <input type="hidden" name="row[]" id="row-<?= $i ?>">
+                      <td width="250px">
+                        <div class="form-group">
+                          <div>
+                            <label for="asset" class="form-label">Asset</label>
+                          </div>
+                          <select name="asset[]" id="asset-<?= $i ?>" class="form-control asset select2">
+                            <option value=""> :: Pilih Asset :: </option>
+                            <?php
+                            $asset = $this->db->get('asset_list')->result_array();
+                            foreach ($asset as $row) {
+                            ?>
+                              <option value="<?= $row['Id'] ?>" <?= $rd['asset'] == $row['Id'] ? 'selected' : '' ?>><?= $row['nama_asset'] ?></option>
+                            <?php } ?>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <div>
+                            <label for="item" class="form-label">Item</label>
+                          </div>
+                          <select name="item[]" id="item-<?= $i ?>" class="form-control item-out select2" width="100%">
+                            <option value=""> :: Pilih Item :: </option>
+                            <?php foreach ($item_list->result_array() as $il) { ?>
+                              <option value="<?= $il['Id'] ?>" <?= $rd['item'] == $il['Id'] ? 'selected' : '' ?>><?= $il['nama'] . " | " . $il['nomor'] ?></option>
+                            <?php } ?>
+                          </select>
+                        </div>
                       </td>
                       <td>
-                        <input type="text" class="form-control" name="qty[]" id="qty" value="<?= $data['qty'] ?>">
+                        <div class="form-group">
+                          <div>
+                            <label for="uoi" class="form-label">QTY</label>
+                          </div>
+                          <input type="text" class="form-control uang" name="qty_out[]" id="qty_out-<?= $i ?>" value="<?= $rd['qty'] ?>">
+                        </div>
+                        <div class="form-group">
+                          <div>
+                            <label for="uoi" class="form-label">UOI</label>
+                          </div>
+                          <select name="uoi_out[]" id="uoi-<?= $i ?>" class="form-control">
+                            <option value="PCS">PCS</option>
+                            <option value="SET">SET</option>
+                            <option value="LITER">LITER</option>
+                            <option value="TABUNG">TABUNG</option>
+                            <option value="DRUM">DRUM</option>
+                            <option value="GALON">GALON</option>
+                            <option value="LUSIN">LUSIN</option>
+                            <option value="KG">KG</option>
+                          </select>
+                        </div>
                       </td>
                       <td>
-                        <input type="text" class="form-control" name="harga[]" id="price" value="<?= number_format($data['price'], 0, ',', '.') ?>">
+                        <label for="harga_out" class="form-label">Harga</label>
+                        <input type="text" class="form-control uang" name="harga_out[]" id="price_out-<?= $i ?>" readonly value="<?= number_format($rd['price'], 0, ',', '.') ?>">
                       </td>
                       <td>
-                        <input type="text" class="form-control" name="total[]" id="total" readonly value="<?= number_format($data['total'], 0, ',', '.') ?>">
+                        <label for="total" class="form-label">TOTAL</label>
+                        <input type="text" class="form-control uang" name="total_out[]" id="total_out-<?= $i ?>" readonly value="<?= number_format($rd['total'], 0, ',', '.') ?>">
                       </td>
                       <td>
-                        <!-- <button type="button" class="btn btn-danger" onclick="deleteRow(<?= $data['Id'] ?>)">Hapus</button> -->
-                        <button type="button" class="btn btn-danger hapusRow">Hapus</button>
+                        <label for="ket" class="form-label">Keterangan</label>
+                        <textarea name="ket[]" id="ket-<?= $i ?>" class="form-control"><?= $rd['keterangan'] ?></textarea>
+                      </td>
+                      <td>
+                        <button type="button" class="btn btn-danger btn-xs remove-form-out" style="margin-top: 20px;"><i class="fa fa-trash" aria-hidden="true"></i></button>
+                        <button type="button" class="btn btn-success btn-xs add-more-form-out"><i class="fa fa-plus" aria-hidden="true"></i></button>
                       </td>
                     </tr>
-                  <?php } ?>
+                  <?php
+                    $i++;
+                  } ?>
                   <tr align="right">
                     <td colspan="3">TOTAL</td>
                     <td>
-                      <input type="text" class="form-control" readonly name="nominal" id="nominal">
+                      <input type="text" class="form-control" readonly name="nominal-out" id="nominal-out">
                     </td>
                     <td></td>
                   </tr>
-                  <tr>
-                    <td colspan="5">
-                      <button type="button" class="btn btn-success btn-sm" id="addRow">Add new row</button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                </table>
+              </div>
               <div class="row">
-                <div class="col-lg-12 text-end">
-                  <a href="<?= base_url('pengajuan/list') ?>" class="btn btn-warning">Back</a>
-                  <button type="submit" class="btn btn-primary" id="btn-save">Update</button>
+                <div class="col-lg-12 text-end padding-0">
+                  <a href="<?= base_url('asset/ro_list') ?>" class="btn btn-warning">Back</a>
+                  <button type="submit" class="btn btn-primary btn-submit">Save</button>
                 </div>
               </div>
             </form>
@@ -232,67 +249,148 @@
 </div>
 <script>
   $(document).ready(function() {
-    $('.select2').select2({
-      width: "100%"
-    })
+    // get_detail_item();
+    setSelect2();
+    updateTotalItemOut();
+    get_detail_item()
 
-    get_detail_item();
+    // var rowCountOut = $(".baris-out").length;
 
-    $('#item-0').select2({
-      width: '100%'
-    });
+    $('table#item-out').on('click', '.add-more-form-out', function() {
+      var row = $(this).parents().closest('tr');
+      var newId = Date.now();
 
-    $('#detail-item-0').select2({
-      width: '100%'
-    });
-
-    var rowCountOut = $(".baris-out").length;
-    $('#add-more-form-out').click(function() {
-
-      var row = '<tr class="baris-out"><input type="hidden" name="row[]" id="row"><td width="250px"><div class="form-group"><div><label for="asset" class="form-label">Asset</label></div><select name="asset[]" id="asset-' + rowCountOut + '" class="form-control select2"><option value=""> :: Pilih Asset :: </option><?php $asset = $this->db->get('asset_list')->result_array();
-                                                                                                                                                                                                                                                                                                                          foreach ($asset as $row) { ?><option value="<?= $row['Id'] ?>"><?= $row['nama_asset'] ?></option><?php } ?></select></div><div class="form-group"><div><label for="item" class="form-label">Item</label></div><select name="item[]" id="item-' + rowCountOut + '" class="form-control item-out" width="100%"><option value=""> :: Pilih Item :: </option><?php foreach ($item_list->result_array() as $il) { ?><option value="<?= $il['Id'] ?>"><?= $il['nama'] . " | " . $il['nomor'] ?></option><?php } ?></select></div></td><td><div class="form-group"><div><label for="qty" class="form-label">QTY</label></div><input type="text" class="form-control uang" name="qty_out[]" id="qty_out-' + rowCountOut + '"></div><div class="form-group"><div><label for="uoi" class="form-label">UOI</label></div><select name="uoi_out[]" id="uoi-' + rowCountOut + '" class="form-control"><option value="PCS">PCS</option><option value="SET">SET</option><option value="LITER">LITER</option><option value="TABUNG">TABUNG</option><option value="DRUM">DRUM</option><option value="GALON">GALON</option><option value="LUSIN">LUSIN</option><option value="KG">KG</option></select></div></td><td><label for="harga_out" class="form-label">Harga</label><input type="text" class="form-control uang" name="harga_out[]" id="price_out-' + rowCountOut + '" readonly></td> <td> <label for="total" class="form-label">TOTAL</label><input type="text" class="form-control uang" name="total_out[]" id="total_out-' + rowCountOut + '" readonly></td><td><label for="ket" class="form-label">Keterangan</label><textarea name="ket[]" id="ket-' + rowCountOut + '" class="form-control"></textarea></td><td><button type="button" class="btn btn-danger remove-form-out" style="margin-top: 20px;"><i class="fa fa-trash" aria-hidden="true"></i></button></td></tr>';
-
-      var previousRow = $('.baris-out').last();
-      rowCountOut++;
-      previousRow.after(row);
-
-      $.each($(".select2"), function(index, value) {
-        $('#asset-' + index).select2({
-          width: '100%'
-        });
-
-        $('#item-' + index).select2({
-          width: '100%'
-        });
-
-        $('#detail-item-' + index).select2({
-          width: '100%'
-        });
+      row.find("select.asset").each(function(index, value) {
+        $(this).select2('destroy');
       });
 
+      row.find("select.item-out").each(function(index, value) {
+        $(this).select2('destroy');
+      });
+      // Membuat baris baru
+      var newRow = row.clone();
+
+      newRow.find('select.asset').each(function(index, value) {
+        $(this).val('');
+        $(this).attr('id', 'asset-' + newId)
+        $(this).select2({
+          width: "100%"
+        })
+      })
+
+      newRow.find('select.item-out').each(function(index, value) {
+        $(this).val('');
+        $(this).attr('id', newId)
+        $(this).select2({
+          width: "100%"
+        });
+      })
+
+      newRow.find('input[name="qty_out[]"]').each(function(index, value) {
+        $(this).attr('id', 'qty-' + newId)
+        $(this).val('0');
+      })
+      newRow.find('input[name="harga_out[]"]').each(function(index, value) {
+        $(this).attr('id', newId)
+        $(this).val('0');
+      })
+      newRow.find('input[name="total_out[]"]').each(function(index, value) {
+        $(this).attr('id', 'total-' + newId)
+        $(this).val('0');
+      })
+
+      newRow.insertAfter(row);
+      $("select.asset").select2();
+      $("select.item-out").select2();
+      updateTotalItemOut();
       get_detail_item()
+    })
+
+    $('table#item-out').on('click', '.remove-form-out', function() {
+      if (countBaris() > 1) {
+        $(this).closest('tr').remove();
+        updateTotalItemOut();
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "The first form can't be deleted",
+          showConfirmButton: false,
+          timer: 1500,
+        }).then(function() {
+          Swal.close();
+        });
+      }
     });
 
-    $(document).on("click", ".remove-form-out", function() {
-      rowCountOut--;
-      $(this).parents(".baris-out").remove();
-      updateTotalItem();
-    });
+    // $(document).on("click", ".remove-form-out", function() {
+    //   rowCountOut--;
+    //   $(this).parents(".baris-out").remove();
+    //   updateTotalItemOut();
+    // });
   })
+
+  $(document).on(
+    "input",
+    'input[name="qty_out[]"], input[name="harga_out[]"]',
+    function() {
+      // var value = $(this).val();
+      var row_out = $(this).closest(".baris-out");
+      hitungTotalOut(row_out);
+      updateTotalItemOut();
+    }
+  );
 </script>
 
 <script>
-  function count_item_out() {
-    const item_out = document.querySelectorAll('.item-out');
-    return item_out;
+  function setSelect2() {
+    let select2 = document.querySelectorAll('select.select2');
+    for (let index = 0; index < select2.length; index++) {
+      $("." + select2[index].classList[1] + "").select2({
+        width: "100%"
+      })
+    }
+  }
+
+  function countBaris() {
+    var jmlBaris = $('.baris-out').length;
+    return jmlBaris;
+  }
+
+  function hitungTotalOut(row) {
+    var qty = row.find('input[name="qty_out[]"]').val().replace(/\./g, ""); // Hapus tanda titik
+    var harga = row.find('input[name="harga_out[]"]').val().replace(/\./g, ""); // Hapus tanda titik
+    qty = parseInt(qty); // Ubah string ke angka float
+    harga = parseInt(harga); // Ubah string ke angka float
+
+    qty = isNaN(qty) ? 0 : qty;
+    harga = isNaN(harga) ? 0 : harga;
+
+    var total = qty * harga;
+    row.find('input[name="total_out[]"]').val(formatNumber(total));
+    updateTotalItemOut();
+  }
+
+  function updateTotalItemOut() {
+    var total_pos_fix = 0;
+    $(".baris-out").each(function() {
+      var total = $(this)
+        .find('input[name="total_out[]"]')
+        .val()
+        .replace(/\./g, ""); // Ambil nilai total dari setiap baris
+      total = parseFloat(total); // Ubah string ke angka float
+      if (!isNaN(total)) {
+        // Pastikan total adalah angka
+        total_pos_fix += total; // Tambahkan nilai total ke total_pos_fix
+      }
+    });
+    $("input[name='nominal-out']").val(formatNumber(total_pos_fix)); // Atur nilai input #nominal dengan total_pos_fix
   }
 
   function get_detail_item() {
-    $.each($(".item-out"), function(index, value) {
-      $('#item-' + index).change(function() {
-        $('#qty-' + index).attr('readonly', false);
+    var amount = document.querySelectorAll('input[name="harga_out[]"]');
+    $.each($("select.item-out"), function(index, value) {
+      $('#' + value.id).change(function() {
         var id = $(this).val();
-        $('#qty-' + index).val(0)
         $.ajax({
           url: "<?= base_url('asset/getItemById/') ?>",
           type: "POST",
@@ -302,43 +400,13 @@
           },
           dataType: "JSON",
           success: function(res) {
-            var qty = $('#qty_out-' + index).val().replace(/\./g, "");
-            var price = res.harga;
-            qty = parseInt(qty);
-            price = parseInt(price);
-            qty = isNaN(qty) ? 0 : qty;
-            price = isNaN(price) ? 0 : price;
-            var total = qty * price;
-            if (res.option) {
-              // $('#select-detail-' + index).show();
-              $('#detail-item-' + index).html(res.option)
-              $('#price_out-' + index).val(formatNumber(convertToComa(res.harga)))
-              $('#total_out-' + index).val(formatNumber(convertToComa(total)));
-            } else {
-              // $('#select-detail-' + index).hide();
-              $('#price_out-' + index).val(formatNumber(convertToComa(res.harga)))
-              $('#total_out-' + index).val(formatNumber(convertToComa(total)));
-            }
+            var harga = res.harga;
+            $('input[id="' + amount[index].id + '"]').val(harga.replace(/\,/g, "."));
             updateTotalItemOut();
           }
         })
       });
-
-      $('#detail-item-' + index).change(function() {
-        var count = $(this).select2('data').length;
-        var price = $('#price_out-' + index).val().replace(/\./g, "");
-        var total = parseInt(count) * parseInt(price);
-
-        $('#qty_out-' + index).val(parseInt(count));
-        $('#total_out-' + index).val(formatNumber(convertToComa(total)));
-        $('#qty_out-' + index).attr('readonly', true);
-        updateTotalItemOut();
-      })
     })
-  }
-
-  function convertToComa(number) {
-    return number.toString().replace('.', ",");
   }
 </script>
 <!-- Finish content-->

@@ -66,6 +66,9 @@
                         <?php if ($value['status_sarlog'] == 1 and $value['status_direksi_ops'] == 1) { ?>
                           <a href="<?= base_url('asset/print_ro/' . $value['Id']) ?>" class="btn btn-primary btn-xs" target="_blank">Print</a>
                         <?php } ?>
+                        <?php if ($value['status_sarlog'] == 0 or $value['status_sarlog'] == 3 or $value['status_direksi_ops'] == 3) { ?>
+                          <a href="<?= base_url('asset/update_ro/' . $value['Id']) ?>" class="btn btn-success btn-xs">Update</a>
+                        <?php } ?>
                         <button class="btn btn-warning btn-xs" data-toggle="modal" data-target="#myModal<?= $value['Id'] ?>">View</button>
                         <!-- Modal Detail -->
                         <div class="modal fade" id="myModal<?= $value['Id'] ?>" role="dialog">

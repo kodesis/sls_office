@@ -131,7 +131,7 @@
               <div class="row" style="margin-bottom: 30px">
                 <div class="col-md-2">
                   <label for="tanggal" class="form-label">Tanggal</label>
-                  <input type="date" class="form-control" name="tanggal" id="tanggal" value="<?php echo date('Y-m-d'); ?>">
+                  <input type="date" class="form-control" name="tanggal" id="tanggal" value="<?php echo date('Y-m-d', strtotime($po['tgl_pengajuan'])); ?>">
                 </div>
                 <div class="col-md-3">
                   <label for="tanggal" class="form-label">Vendor</label>

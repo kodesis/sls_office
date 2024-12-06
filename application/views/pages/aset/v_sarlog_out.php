@@ -49,8 +49,11 @@
                     } else if ($value['status_sarlog'] == 1) {
                       $status = 'Disetujui';
                       $color = "#2ecc71";
-                    } else {
+                    } elseif ($value['status_sarlog'] == 2) {
                       $status = 'Ditolak';
+                      $color = "#e74c3c";
+                    } else {
+                      $status = 'Revisi';
                       $color = "#e74c3c";
                     }
                   ?>
@@ -180,6 +183,7 @@
                                         <select name="status" id="status" class="form-control">
                                           <option value=""> :: Pilih Status ::</option>
                                           <option value="1">Disetujui</option>
+                                          <option value="3">Revisi</option>
                                           <option value="2">Ditolak</option>
                                         </select>
                                       </div>

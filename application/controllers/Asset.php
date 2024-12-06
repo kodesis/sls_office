@@ -592,6 +592,35 @@ class Asset extends CI_Controller
 		}
 	}
 
+	public function update_ro($id)
+	{
+		$a = $this->session->userdata('level');
+		if (strpos($a, '502') !== false) {
+			//inbox notif
+			$nip = $this->session->userdata('nip');
+			$sql = "SELECT COUNT(Id) FROM memo WHERE (nip_kpd LIKE '%$nip%' OR nip_cc LIKE '%$nip%') AND (`read` NOT LIKE '%$nip%');";
+			$query = $this->db->query($sql);
+			$res1 = $query->result_array();
+			$result = $res1[0]['COUNT(Id)'];
+			$data['count_inbox'] = $result;
+
+			$sql2 = "SELECT COUNT(id) FROM task WHERE (`member` LIKE '%$nip%' or `pic` like '%$nip%') and activity='1'";
+			$query2 = $this->db->query($sql2);
+			$res2 = $query2->result_array();
+			$result2 = $res2[0]['COUNT(id)'];
+			$data['count_inbox2'] = $result2;
+
+			$data['item_list'] = $this->db->get('item_list');
+			$data['vendors'] = $this->db->get('t_vendors');
+			$data['ro'] = $this->cb->get_where('t_ro', ['Id' => $id])->row_array();
+			$data['title'] = "Update Release Order";
+			$data['pages'] = "pages/aset/v_ro";
+			$this->load->view('index', $data);
+		} else {
+			redirect('home');
+		}
+	}
+
 	public function simpan_update_po($id)
 	{
 		$a = $this->session->userdata('level');
@@ -692,6 +721,123 @@ class Asset extends CI_Controller
 		} else {
 			redirect('home');
 		}
+	}
+
+	public function simpan_update_ro($id)
+	{
+		$ro = $this->cb->get_where('t_ro', ['Id' => $id])->row_array();
+		$tanggal = $this->input->post('tanggal');
+		$rows = $this->input->post('row[]');
+		$item = $this->input->post('item[]');
+		$qty = $this->input->post('qty_out[]');
+		$asset = $this->input->post('asset[]');
+		$price = $this->input->post('harga_out[]');
+		$keterangan = $this->input->post('ket[]');
+		$uoi = $this->input->post('uoi_out[]');
+		// $detail_item = $this->input->post('detail_item[]');
+		$sub_total = $this->input->post('total_out[]');
+		$total = $this->input->post('nominal-out');
+		$now = date('Y-m-d');
+		$teknisi = $this->input->post('teknisi');
+		if (strtotime($tanggal) != strtotime($now)) {
+			$tgl = $tanggal;
+		} else {
+			$tgl = date('Y-m-d H:i:s');
+		}
+
+		$this->form_validation->set_rules('tanggal', 'tanggal', 'required', ['required' => '%s wajib diisi!']);
+		$this->form_validation->set_rules('teknisi', 'nama teknisi', 'required|trim', ['required' => '%s wajib diisi!']);
+		$this->form_validation->set_rules('asset[]', 'asset', 'required', ['required' => '%s wajib diisi!']);
+		$this->form_validation->set_rules('item[]', 'item', 'required', ['required' => '%s wajib diisi!']);
+		$this->form_validation->set_rules('qty_out[]', 'qty', 'required', ['required' => '%s wajib diisi!']);
+		$this->form_validation->set_rules('harga_out[]', 'harga', 'required', ['required' => '%s wajib diisi!']);
+		$this->form_validation->set_rules('uoi_out[]', 'uoi', 'required', ['required' => '%s wajib diisi!']);
+
+		if ($this->form_validation->run() == FALSE) {
+			$response = [
+				'success' => false,
+				'msg' => array_values($this->form_validation->error_array())[0]
+			];
+		} else {
+			$update = [
+				'tgl_pengajuan' => $tgl,
+				'user' => $this->session->userdata('nip'),
+				'total' => preg_replace('/[^a-zA-Z0-9\']/', '', $total),
+				'posisi' => 'Diajukan kepada sarlog',
+				'teknisi' => $teknisi,
+				'sarlog' => null,
+				'status_sarlog' => 0,
+				'catatan_sarlog' => null,
+				'date_sarlog' => null,
+				'direksi_ops' => null,
+				'date_direksi_ops' => null,
+				'status_direksi_ops' => 0,
+				'catatan_direksi_ops' => null,
+			];
+
+			$this->cb->where('Id', $id);
+			$this->cb->update('t_ro', $update);
+
+			$this->cb->where('no_ro',  $ro['Id']);
+			$this->cb->delete('t_ro_detail');
+
+			for ($i = 0; $i < count($rows); $i++) {
+				// $this->db->select('Id, kode_item, serial_number');
+				// $item_detail[] = $this->db->get_where('item_detail', ['kode_item' => $item[$i]])->result_array();
+				$item_list[] = $this->db->get_where('item_list', ['Id' => $item[$i]])->row_array();
+
+				if ($qty[$i] < 1) {
+					$response = [
+						'success' => false,
+						'msg' => 'Stok item ' . $item_list[$i]['nama'] . ' tidak boleh kosong'
+					];
+
+					echo json_encode($response);
+					return false;
+				}
+
+				if ($qty[$i] > $item_list[$i]['stok']) {
+					$response = [
+						'success' => false,
+						'msg' => 'Stok item ' . $item_list[$i]['nama'] . ' kurang'
+					];
+
+					echo json_encode($response);
+					return false;
+				}
+
+				$insert_detail = [
+					'no_ro' => $ro['Id'],
+					'item' => $item[$i],
+					'asset' => $asset[$i],
+					'qty' => preg_replace('/[^a-zA-Z0-9\']/', '', $qty[$i]),
+					'uoi' => $uoi[$i],
+					'price' => preg_replace('/[^a-zA-Z0-9\']/', '', $price[$i]),
+					'total' => preg_replace('/[^a-zA-Z0-9\']/', '', $sub_total[$i]),
+					'keterangan' => $keterangan[$i]
+				];
+
+				$this->cb->insert('t_ro_detail', $insert_detail);
+			}
+
+			$this->db->select('phone');
+			$this->db->where(['level_jabatan' => 2, 'bagian' => 2]);
+			$sarlog = $this->db->get('users')->result_array();
+			$phone = '';
+			foreach ($sarlog as $val) {
+				$phone .= $val['phone'] . ',';
+			}
+
+			$nama_session = $this->session->userdata('nama');
+			$msg = "There's a new Release Order\nNo : *$ro[no_ro]*\nFrom : *$nama_session*\n\nMohon untuk segera diproses.";
+			$this->api_whatsapp->wa_notif($msg, $phone);
+
+			$response = [
+				'success' => true,
+				'msg' => 'Release Order berhasil Diubah!'
+			];
+		}
+		echo json_encode($response);
 	}
 
 	public function po_list()
@@ -877,6 +1023,9 @@ class Asset extends CI_Controller
 				$po = $this->cb->get_where('t_po', ['Id' => $id])->row_array();
 				if ($status == 1) {
 					$posisi = 'diajukan kepada direktur operasional';
+				}
+				if ($status == 2) {
+					$posisi = 'revisi';
 				} else {
 					$posisi = 'ditolak sarlog';
 				}
@@ -1646,7 +1795,7 @@ class Asset extends CI_Controller
 
 		$response = [
 			'option' => $option,
-			'harga' => $item['harga_sat']
+			'harga' => number_format($item['harga_sat'])
 		];
 		echo json_encode($response);
 	}
@@ -1663,7 +1812,7 @@ class Asset extends CI_Controller
 		$uoi = $this->input->post('uoi_out[]');
 		// $detail_item = $this->input->post('detail_item[]');
 		$sub_total = $this->input->post('total_out[]');
-		$total = $this->input->post('nominal');
+		$total = $this->input->post('nominal-out');
 		$now = date('Y-m-d');
 		$teknisi = $this->input->post('teknisi');
 		if (strtotime($tanggal) != strtotime($now)) {
@@ -1936,7 +2085,7 @@ class Asset extends CI_Controller
 		}
 
 		$this->form_validation->set_rules('tanggal', 'tanggal', 'required', ['required' => '%s wajib diisi!']);
-		$this->form_validation->set_rules('status', 'status', 'required|in_list[1,2]', ['required' => '%s wajib diisi!']);
+		$this->form_validation->set_rules('status', 'status', 'required|in_list[1,2,3]', ['required' => '%s wajib diisi!']);
 
 		if ($this->form_validation->run() == FALSE) {
 			$response = [
@@ -1947,8 +2096,12 @@ class Asset extends CI_Controller
 			if ($status == 1) {
 				$posisi = 'diajukan kepada direktur operasional';
 				$direksi_ops = 'SLS0004';
-			} else {
+			}
+			if ($status == 2) {
 				$posisi = 'ditolak sarlog';
+				$direksi_ops = null;
+			} else {
+				$posisi = 'revisi';
 				$direksi_ops = null;
 			}
 
@@ -1988,6 +2141,11 @@ class Asset extends CI_Controller
 
 			if ($status == 2) {
 				$msg = "Pemberitahuan Release Order\n\nHallo *$user[nama]*, Pengajuan anda dengan No. *$ro[no_ro]* ditolak oleh *$nama_session* sebagai penanggung jawab logistik.\n\n*Catatan* : $catatan";
+				$this->api_whatsapp->wa_notif($msg, $user['phone']);
+			}
+
+			if ($status == 3) {
+				$msg = "Pemberitahuan Release Order\n\nHallo *$user[nama]*, Pengajuan anda dengan No. *$ro[no_ro]* diminta untuk direvisi oleh *$nama_session* sebagai penanggung jawab logistik.\n\n*Catatan* : $catatan";
 				$this->api_whatsapp->wa_notif($msg, $user['phone']);
 			}
 
@@ -2122,6 +2280,11 @@ class Asset extends CI_Controller
 
 			if ($status == 2) {
 				$msg = "Pemberitahuan Release Order\n\nHallo *$user[nama]*, Pengajuan anda dengan No. *$ro[no_ro]* ditolak oleh *$nama_session* sebagai Direktur Operasional.\n\n*Catatan* : $catatan";
+				$this->api_whatsapp->wa_notif($msg, $user['phone']);
+			}
+
+			if ($status == 3) {
+				$msg = "Pemberitahuan Release Order\n\nHallo *$user[nama]*, Pengajuan anda dengan No. *$ro[no_ro]* diminta untuk direvisi oleh *$nama_session* sebagai Direktur Operasional.\n\n*Catatan* : $catatan";
 				$this->api_whatsapp->wa_notif($msg, $user['phone']);
 			}
 
@@ -3091,11 +3254,11 @@ class Asset extends CI_Controller
 		$sampai = $this->input->post('sampai');
 
 		if ($item == 'all') {
-			$sql = "SELECT * FROM working_supply JOIN item_list ON item_list.Id = working_supply.item_id WHERE (tanggal >= '$dari' OR tanggal <= '$sampai')";
+			$sql = "SELECT * FROM working_supply JOIN item_list ON item_list.Id = working_supply.item_id WHERE (tanggal >= '$dari' AND tanggal <= '$sampai')";
 			$data['report'] = $this->db->query($sql)->result_array();
 			$data['jenis'] = 'all';
 		} else {
-			$sql = "SELECT * FROM working_supply JOIN item_list ON item_list.Id = working_supply.item_id WHERE item_id = '$item' and (tanggal >= '$dari' OR tanggal <= '$sampai')";
+			$sql = "SELECT * FROM working_supply JOIN item_list ON item_list.Id = working_supply.item_id WHERE item_id = '$item' and (tanggal >= '$dari' AND tanggal <= '$sampai')";
 			$data['report'] = $this->db->query($sql)->result_array();
 			$data['jenis'] = 'not all';
 			$data['item_list'] = $this->db->get_where('item_list', ['Id' => $item])->row_array();

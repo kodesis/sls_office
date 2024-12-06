@@ -146,6 +146,9 @@
                 } else if ($value['status_sarlog'] == 1) {
                   $status = 'Disetujui';
                   $color = "#2ecc71";
+                } elseif ($value['status_sarlog'] == 2) {
+                  $status = 'Revisi';
+                  $color = "#e74c3c";
                 } else {
                   $status = 'Ditolak';
                   $color = "#e74c3c";
