@@ -1026,7 +1026,9 @@ class Asset extends CI_Controller
 				}
 				if ($status == 2) {
 					$posisi = 'revisi';
-				} else {
+				}
+
+				if ($status == 3) {
 					$posisi = 'ditolak sarlog';
 				}
 
@@ -1315,7 +1317,11 @@ class Asset extends CI_Controller
 			$po = $this->cb->get_where('t_po', ['Id' => $id])->row_array();
 			if ($status == 1) {
 				$posisi = 'disetujui untuk diproses';
-			} else {
+			}
+			if ($status == 2) {
+				$posisi = 'revisi';
+			}
+			if ($status == 3) {
 				$posisi = 'ditolak oleh direktur operasional';
 			}
 
@@ -2100,7 +2106,8 @@ class Asset extends CI_Controller
 			if ($status == 2) {
 				$posisi = 'ditolak sarlog';
 				$direksi_ops = null;
-			} else {
+			}
+			if ($status == 3) {
 				$posisi = 'revisi';
 				$direksi_ops = null;
 			}
@@ -2252,9 +2259,14 @@ class Asset extends CI_Controller
 		} else {
 			if ($status == 1) {
 				$posisi = 'Disetujui Direktur Operasional';
-			} else {
+			}
+			if ($status == 2) {
 				$posisi = 'Ditolak Direktur Operasional';
 			}
+			if ($status == 3) {
+				$posisi = 'Revisi';
+			}
+
 			$update = [
 				'status_direksi_ops' => $status,
 				'posisi' => $posisi,
