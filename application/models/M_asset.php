@@ -138,7 +138,7 @@ class M_asset extends CI_Model
 			$this->cb->where($where);
 		}
 
-		return $this->cb->order_by('a.no_ro', 'DESC')->limit($limit, $start)->get();
+		return $this->cb->order_by('a.tgl_pengajuan', 'DESC')->limit($limit, $start)->get();
 	}
 
 	function count_po($keyword, $where, $filter)

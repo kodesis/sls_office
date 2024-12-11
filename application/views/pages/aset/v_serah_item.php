@@ -145,6 +145,7 @@
                 <?php if ($ro['posisi'] != 'Barang sudah diserahkan') { ?>
                   <button class="btn btn-danger" type="reset">Reset</button>
                   <button class="btn btn-primary btn-submit" type="submit">Serahkan</button>
+                  <!-- <button class="btn btn-primary" type="submit">Serahkan</button> -->
                 <?php } ?>
               </div>
             <?php } ?>
