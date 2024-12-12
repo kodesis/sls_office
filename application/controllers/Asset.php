@@ -872,7 +872,7 @@ class Asset extends CI_Controller
 			$config['total_rows'] = $this->m_asset->count_po($keyword, ['a.user' => $nip], null);
 			$config['per_page'] = 10;
 			$config['uri_segment'] = 3;
-			$config['num_links'] = 3;
+			$config['num_links'] = 10;
 			$config['enable_query_strings'] = TRUE;
 			$config['page_query_string'] = TRUE;
 			$config['use_page_numbers'] = TRUE;
@@ -950,7 +950,7 @@ class Asset extends CI_Controller
 			$config['total_rows'] = $this->m_asset->count_po($keyword, [], $filter);
 			$config['per_page'] = 20;
 			$config['uri_segment'] = 3;
-			$config['num_links'] = 3;
+			$config['num_links'] = 10;
 			$config['enable_query_strings'] = TRUE;
 			$config['page_query_string'] = TRUE;
 			$config['use_page_numbers'] = TRUE;
@@ -1115,7 +1115,7 @@ class Asset extends CI_Controller
 		$config['total_rows'] = $this->m_asset->count_po($keyword, ['status_sarlog' => 1, 'direksi_ops' => $this->session->userdata('nip')], null);
 		$config['per_page'] = 20;
 		$config['uri_segment'] = 3;
-		$config['num_links'] = 3;
+		$config['num_links'] = 10;
 		$config['enable_query_strings'] = TRUE;
 		$config['page_query_string'] = TRUE;
 		$config['use_page_numbers'] = TRUE;
@@ -1183,7 +1183,7 @@ class Asset extends CI_Controller
 		$config['total_rows'] = $this->m_asset->count_po($keyword, ['status_sarlog' => 1, 'status_direksi_ops' => 1, 'dirut' => $this->session->userdata('nip')], null);
 		$config['per_page'] = 20;
 		$config['uri_segment'] = 3;
-		$config['num_links'] = 3;
+		$config['num_links'] = 10;
 		$config['enable_query_strings'] = TRUE;
 		$config['page_query_string'] = TRUE;
 		$config['use_page_numbers'] = TRUE;
@@ -1988,7 +1988,7 @@ class Asset extends CI_Controller
 		$config['total_rows'] = $this->m_asset->count_ro($keyword, ['a.user' => $nip]);
 		$config['per_page'] = 10;
 		$config['uri_segment'] = 3;
-		$config['num_links'] = 3;
+		$config['num_links'] = 10;
 		$config['enable_query_strings'] = TRUE;
 		$config['page_query_string'] = TRUE;
 		$config['use_page_numbers'] = TRUE;
@@ -2059,7 +2059,7 @@ class Asset extends CI_Controller
 		$config['total_rows'] = $this->m_asset->count_ro($keyword, ['user !=' => $this->session->userdata('nip')]);
 		$config['per_page'] = 20;
 		$config['uri_segment'] = 3;
-		$config['num_links'] = 3;
+		$config['num_links'] = 10;
 		$config['enable_query_strings'] = TRUE;
 		$config['page_query_string'] = TRUE;
 		$config['use_page_numbers'] = TRUE;
@@ -2219,7 +2219,7 @@ class Asset extends CI_Controller
 		$config['total_rows'] = $this->m_asset->count_ro($keyword, ['status_sarlog' => 1, 'direksi_ops' => $nip]);
 		$config['per_page'] = 10;
 		$config['uri_segment'] = 3;
-		$config['num_links'] = 3;
+		$config['num_links'] = 10;
 		$config['enable_query_strings'] = TRUE;
 		$config['page_query_string'] = TRUE;
 		$config['use_page_numbers'] = TRUE;
@@ -3176,7 +3176,7 @@ class Asset extends CI_Controller
 				$config['total_rows'] = $this->m_asset->itemOut_count($keyword);
 				$config['per_page'] = 10;
 				$config['uri_segment'] = 3;
-				$config['num_links'] = 3;
+				$config['num_links'] = 10;
 				$config['enable_query_strings'] = TRUE;
 				$config['page_query_string'] = TRUE;
 				$config['use_page_numbers'] = TRUE;
