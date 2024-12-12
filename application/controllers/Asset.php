@@ -1938,18 +1938,18 @@ class Asset extends CI_Controller
 					echo json_encode($response);
 					return false;
 				}
-				$insert_detail = [
-					'no_ro' => $last_id,
-					'item' => $item[$i],
-					'asset' => $asset[$i],
-					'qty' => str_replace('.', '', $qty[$i]),
-					'uoi' => $uoi[$i],
-					'price' => str_replace('.', '', $price[$i]),
-					'total' => str_replace('.', '', $sub_total[$i]),
-					'keterangan' => $keterangan[$i]
-				];
+				// $insert_detail = [
+				// 	'no_ro' => $last_id,
+				// 	'item' => $item[$i],
+				// 	'asset' => $asset[$i],
+				// 	'qty' => str_replace('.', '', $qty[$i]),
+				// 	'uoi' => $uoi[$i],
+				// 	'price' => str_replace('.', '', $price[$i]),
+				// 	'total' => str_replace('.', '', $sub_total[$i]),
+				// 	'keterangan' => $keterangan[$i]
+				// ];
 
-				$this->cb->insert('t_ro_detail', $insert_detail);
+				// $this->cb->insert('t_ro_detail', $insert_detail);
 			}
 
 			if (count($insert_detail) > 0) {
