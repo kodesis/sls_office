@@ -1,4 +1,5 @@
 <?php
+
 defined('BASEPATH') or exit('No direct script access allowed');
 class Asset extends CI_Controller
 {
@@ -275,10 +276,6 @@ class Asset extends CI_Controller
 		$this->session->set_userdata('filterJenis', $jenis);
 		redirect('asset/item_list');
 	}
-	// function export_item()
-	// {
-	// 	$this->load->view('pages/aset/export_asset');
-	// }
 
 	function reset_jenis_item()
 	{
@@ -4197,5 +4194,80 @@ class Asset extends CI_Controller
 		}
 
 		echo json_encode($response);
+	}
+
+	public function export_itemList()
+	{
+		require_once(APPPATH . 'libraries/PHPExcel/IOFactory.php');
+
+		$item = $this->db->get('item_list')->result_array();
+
+		$excel = new PHPExcel();
+
+		$excel->getProperties()->setCreator('SLS')
+			->setLastModifiedBy('SLS')
+			->setTitle("Item List")
+			->setSubject("Item List")
+			->setDescription("Item List")
+			->setKeywords("Item List");
+
+		$style_col = [
+			'font' => ['bold' => true],
+			'alignment' => ['horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER, 'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER],
+			'borders' => ['top' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'right' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'bottom' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'left' => ['style'  => PHPExcel_Style_Border::BORDER_THIN]]
+		];
+
+		$style_row = [
+			'alignment' => ['vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER],
+			'borders' => ['top' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'right' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'bottom' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'left' => ['style'  => PHPExcel_Style_Border::BORDER_THIN]]
+		];
+
+		$excel->setActiveSheetIndex(0)->setCellValue('A2', "No.");
+		$excel->setActiveSheetIndex(0)->setCellValue('B2', "Part Number");
+		$excel->setActiveSheetIndex(0)->setCellValue('C2', "Nama Barang");
+		$excel->setActiveSheetIndex(0)->setCellValue('D2', "Stok");
+		$excel->setActiveSheetIndex(0)->setCellValue('E2', "CoA");
+
+
+		$excel->getActiveSheet()->getStyle('A2')->applyFromArray($style_col);
+		$excel->getActiveSheet()->getStyle('B2')->applyFromArray($style_col);
+		$excel->getActiveSheet()->getStyle('C2')->applyFromArray($style_col);
+		$excel->getActiveSheet()->getStyle('D2')->applyFromArray($style_col);
+		$excel->getActiveSheet()->getStyle('E2')->applyFromArray($style_col);
+
+		$no = 1;
+		$numrow = 3;
+		foreach ($item as $i) {
+			$excel->setActiveSheetIndex(0)->setCellValue('A' . $numrow, $no);
+			$excel->setActiveSheetIndex(0)->setCellValue('B' . $numrow, $i['nomor']);
+			$excel->setActiveSheetIndex(0)->setCellValue('C' . $numrow, $i['nama']);
+			$excel->setActiveSheetIndex(0)->setCellValue('D' . $numrow, $i['stok']);
+			$excel->setActiveSheetIndex(0)->setCellValue('E' . $numrow, $i['coa']);
+
+			foreach (range('A', 'E') as $columnID) {
+				$excel->getActiveSheet()->getStyle($columnID . $numrow)->applyFromArray($style_row);
+			}
+
+			$no++;
+			$numrow++;
+		}
+		$excel->getActiveSheet()->getColumnDimension('A')->setAutoSize(true); // Set width kolom A
+		$excel->getActiveSheet()->getColumnDimension('B')->setAutoSize(true); // Set width kolom B
+		$excel->getActiveSheet()->getColumnDimension('C')->setAutoSize(true); // Set width kolom C
+		$excel->getActiveSheet()->getColumnDimension('D')->setAutoSize(true); // Set width kolom D
+		$excel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true); // Set width kolom E
+
+		$excel->getActiveSheet()->setTitle('Item List');
+
+
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="Item List.xls"');
+		header('Cache-Control: max-age=0');
+		header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+		header('Cache-Control: cache, must-revalidate');
+		header('Pragma: public');
+
+		$objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
+		$objWriter->save('php://output');
 	}
 }

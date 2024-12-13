@@ -258,7 +258,7 @@ class PHPExcel_Shared_Font
         }
 
         // Special case if there are one or more newline characters ("\n")
-        if (strpos($cellText, "\n") !== false) {
+        if ($cellText && strpos($cellText, "\n") !== false) {
             $lineTexts = explode("\n", $cellText);
             $lineWidths = array();
             foreach ($lineTexts as $lineText) {
@@ -440,31 +440,26 @@ class PHPExcel_Shared_Font
         // Check if we can map font to true type font file
         switch ($name) {
             case 'Arial':
-                $fontFile = (
-                    $bold ? ($italic ? self::ARIAL_BOLD_ITALIC : self::ARIAL_BOLD)
+                $fontFile = ($bold ? ($italic ? self::ARIAL_BOLD_ITALIC : self::ARIAL_BOLD)
                     : ($italic ? self::ARIAL_ITALIC : self::ARIAL)
                 );
                 break;
             case 'Calibri':
-                $fontFile = (
-                    $bold ? ($italic ? self::CALIBRI_BOLD_ITALIC : self::CALIBRI_BOLD)
+                $fontFile = ($bold ? ($italic ? self::CALIBRI_BOLD_ITALIC : self::CALIBRI_BOLD)
                     : ($italic ? self::CALIBRI_ITALIC : self::CALIBRI)
                 );
                 break;
             case 'Courier New':
-                $fontFile = (
-                    $bold ? ($italic ? self::COURIER_NEW_BOLD_ITALIC : self::COURIER_NEW_BOLD)
+                $fontFile = ($bold ? ($italic ? self::COURIER_NEW_BOLD_ITALIC : self::COURIER_NEW_BOLD)
                     : ($italic ? self::COURIER_NEW_ITALIC : self::COURIER_NEW)
                 );
                 break;
             case 'Comic Sans MS':
-                $fontFile = (
-                    $bold ? self::COMIC_SANS_MS_BOLD : self::COMIC_SANS_MS
+                $fontFile = ($bold ? self::COMIC_SANS_MS_BOLD : self::COMIC_SANS_MS
                 );
                 break;
             case 'Georgia':
-                $fontFile = (
-                    $bold ? ($italic ? self::GEORGIA_BOLD_ITALIC : self::GEORGIA_BOLD)
+                $fontFile = ($bold ? ($italic ? self::GEORGIA_BOLD_ITALIC : self::GEORGIA_BOLD)
                     : ($italic ? self::GEORGIA_ITALIC : self::GEORGIA)
                 );
                 break;
@@ -472,8 +467,7 @@ class PHPExcel_Shared_Font
                 $fontFile = self::IMPACT;
                 break;
             case 'Liberation Sans':
-                $fontFile = (
-                    $bold ? ($italic ? self::LIBERATION_SANS_BOLD_ITALIC : self::LIBERATION_SANS_BOLD)
+                $fontFile = ($bold ? ($italic ? self::LIBERATION_SANS_BOLD_ITALIC : self::LIBERATION_SANS_BOLD)
                     : ($italic ? self::LIBERATION_SANS_ITALIC : self::LIBERATION_SANS)
                 );
                 break;
@@ -487,8 +481,7 @@ class PHPExcel_Shared_Font
                 $fontFile = self::MICROSOFT_SANS_SERIF;
                 break;
             case 'Palatino Linotype':
-                $fontFile = (
-                    $bold ? ($italic ? self::PALATINO_LINOTYPE_BOLD_ITALIC : self::PALATINO_LINOTYPE_BOLD)
+                $fontFile = ($bold ? ($italic ? self::PALATINO_LINOTYPE_BOLD_ITALIC : self::PALATINO_LINOTYPE_BOLD)
                     : ($italic ? self::PALATINO_LINOTYPE_ITALIC : self::PALATINO_LINOTYPE)
                 );
                 break;
@@ -496,25 +489,21 @@ class PHPExcel_Shared_Font
                 $fontFile = self::SYMBOL;
                 break;
             case 'Tahoma':
-                $fontFile = (
-                    $bold ? self::TAHOMA_BOLD : self::TAHOMA
+                $fontFile = ($bold ? self::TAHOMA_BOLD : self::TAHOMA
                 );
                 break;
             case 'Times New Roman':
-                $fontFile = (
-                    $bold ? ($italic ? self::TIMES_NEW_ROMAN_BOLD_ITALIC : self::TIMES_NEW_ROMAN_BOLD)
+                $fontFile = ($bold ? ($italic ? self::TIMES_NEW_ROMAN_BOLD_ITALIC : self::TIMES_NEW_ROMAN_BOLD)
                     : ($italic ? self::TIMES_NEW_ROMAN_ITALIC : self::TIMES_NEW_ROMAN)
                 );
                 break;
             case 'Trebuchet MS':
-                $fontFile = (
-                    $bold ? ($italic ? self::TREBUCHET_MS_BOLD_ITALIC : self::TREBUCHET_MS_BOLD)
+                $fontFile = ($bold ? ($italic ? self::TREBUCHET_MS_BOLD_ITALIC : self::TREBUCHET_MS_BOLD)
                     : ($italic ? self::TREBUCHET_MS_ITALIC : self::TREBUCHET_MS)
                 );
                 break;
             case 'Verdana':
-                $fontFile = (
-                    $bold ? ($italic ? self::VERDANA_BOLD_ITALIC : self::VERDANA_BOLD)
+                $fontFile = ($bold ? ($italic ? self::VERDANA_BOLD_ITALIC : self::VERDANA_BOLD)
                     : ($italic ? self::VERDANA_ITALIC : self::VERDANA)
                 );
                 break;

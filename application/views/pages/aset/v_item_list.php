@@ -29,6 +29,7 @@
                         <span class="input-group-btn">
                             <button class="btn btn-default" type="submit"><i class="fa fa-search" aria-hidden="true"></i> Search!</button>
                             <a href="<?= base_url('asset/item_list') ?>" class="btn btn-warning">RESET</a>
+                            <a href="<?= base_url('asset/export_itemList') ?>" class="btn btn-success"><i class="fa fa-file-excel-o" aria-hidden="true"></i> Export</a>
                         </span>
                     </div><!-- /input-group -->
                 </form>
