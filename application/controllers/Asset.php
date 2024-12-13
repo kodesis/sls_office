@@ -4200,7 +4200,8 @@ class Asset extends CI_Controller
 	{
 		require_once(APPPATH . 'libraries/PHPExcel/IOFactory.php');
 
-		$item = $this->db->get('item_list')->result_array();
+		$this->db->select('a.*, b.nama_perkiraan')->from('item_list a')->join($this->cb->database . '.v_coa_all as b', 'a.coa = b.no_sbb', 'LEFT');
+		$item = $this->db->get()->result_array();
 
 		$excel = new PHPExcel();
 
@@ -4227,6 +4228,7 @@ class Asset extends CI_Controller
 		$excel->setActiveSheetIndex(0)->setCellValue('C2', "Nama Barang");
 		$excel->setActiveSheetIndex(0)->setCellValue('D2', "Stok");
 		$excel->setActiveSheetIndex(0)->setCellValue('E2', "CoA");
+		$excel->setActiveSheetIndex(0)->setCellValue('F2', "Nama CoA");
 
 
 		$excel->getActiveSheet()->getStyle('A2')->applyFromArray($style_col);
@@ -4234,6 +4236,7 @@ class Asset extends CI_Controller
 		$excel->getActiveSheet()->getStyle('C2')->applyFromArray($style_col);
 		$excel->getActiveSheet()->getStyle('D2')->applyFromArray($style_col);
 		$excel->getActiveSheet()->getStyle('E2')->applyFromArray($style_col);
+		$excel->getActiveSheet()->getStyle('F2')->applyFromArray($style_col);
 
 		$no = 1;
 		$numrow = 3;
@@ -4243,8 +4246,9 @@ class Asset extends CI_Controller
 			$excel->setActiveSheetIndex(0)->setCellValue('C' . $numrow, $i['nama']);
 			$excel->setActiveSheetIndex(0)->setCellValue('D' . $numrow, $i['stok']);
 			$excel->setActiveSheetIndex(0)->setCellValue('E' . $numrow, $i['coa']);
+			$excel->setActiveSheetIndex(0)->setCellValue('F' . $numrow, $i['nama_perkiraan']);
 
-			foreach (range('A', 'E') as $columnID) {
+			foreach (range('A', 'F') as $columnID) {
 				$excel->getActiveSheet()->getStyle($columnID . $numrow)->applyFromArray($style_row);
 			}
 
@@ -4256,6 +4260,7 @@ class Asset extends CI_Controller
 		$excel->getActiveSheet()->getColumnDimension('C')->setAutoSize(true); // Set width kolom C
 		$excel->getActiveSheet()->getColumnDimension('D')->setAutoSize(true); // Set width kolom D
 		$excel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true); // Set width kolom E
+		$excel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true); // Set width kolom E
 
 		$excel->getActiveSheet()->setTitle('Item List');
 
