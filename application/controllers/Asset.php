@@ -2291,7 +2291,7 @@ class Asset extends CI_Controller
 		}
 
 		$this->form_validation->set_rules('tanggal', 'tanggal', 'required', ['required' => '%s wajib diisi!']);
-		$this->form_validation->set_rules('status', 'status', 'required|in_list[1,2]', ['required' => '%s wajib diisi!']);
+		$this->form_validation->set_rules('status', 'status', 'required|in_list[1,2,3]', ['required' => '%s wajib diisi!']);
 
 		if ($this->form_validation->run() == FALSE) {
 			$response = [
@@ -4227,8 +4227,9 @@ class Asset extends CI_Controller
 		$excel->setActiveSheetIndex(0)->setCellValue('B2', "Part Number");
 		$excel->setActiveSheetIndex(0)->setCellValue('C2', "Nama Barang");
 		$excel->setActiveSheetIndex(0)->setCellValue('D2', "Stok");
-		$excel->setActiveSheetIndex(0)->setCellValue('E2', "CoA");
-		$excel->setActiveSheetIndex(0)->setCellValue('F2', "Nama CoA");
+		$excel->setActiveSheetIndex(0)->setCellValue('E2', "Harga Satuan");
+		$excel->setActiveSheetIndex(0)->setCellValue('F2', "CoA");
+		$excel->setActiveSheetIndex(0)->setCellValue('G2', "Nama CoA");
 
 
 		$excel->getActiveSheet()->getStyle('A2')->applyFromArray($style_col);
@@ -4237,6 +4238,7 @@ class Asset extends CI_Controller
 		$excel->getActiveSheet()->getStyle('D2')->applyFromArray($style_col);
 		$excel->getActiveSheet()->getStyle('E2')->applyFromArray($style_col);
 		$excel->getActiveSheet()->getStyle('F2')->applyFromArray($style_col);
+		$excel->getActiveSheet()->getStyle('G2')->applyFromArray($style_col);
 
 		$no = 1;
 		$numrow = 3;
@@ -4245,10 +4247,11 @@ class Asset extends CI_Controller
 			$excel->setActiveSheetIndex(0)->setCellValue('B' . $numrow, $i['nomor']);
 			$excel->setActiveSheetIndex(0)->setCellValue('C' . $numrow, $i['nama']);
 			$excel->setActiveSheetIndex(0)->setCellValue('D' . $numrow, $i['stok']);
-			$excel->setActiveSheetIndex(0)->setCellValue('E' . $numrow, $i['coa']);
-			$excel->setActiveSheetIndex(0)->setCellValue('F' . $numrow, $i['nama_perkiraan']);
+			$excel->setActiveSheetIndex(0)->setCellValue('E' . $numrow, $i['harga_sat']);
+			$excel->setActiveSheetIndex(0)->setCellValue('F' . $numrow, $i['coa']);
+			$excel->setActiveSheetIndex(0)->setCellValue('G' . $numrow, $i['nama_perkiraan']);
 
-			foreach (range('A', 'F') as $columnID) {
+			foreach (range('A', 'G') as $columnID) {
 				$excel->getActiveSheet()->getStyle($columnID . $numrow)->applyFromArray($style_row);
 			}
 
@@ -4260,7 +4263,8 @@ class Asset extends CI_Controller
 		$excel->getActiveSheet()->getColumnDimension('C')->setAutoSize(true); // Set width kolom C
 		$excel->getActiveSheet()->getColumnDimension('D')->setAutoSize(true); // Set width kolom D
 		$excel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true); // Set width kolom E
-		$excel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true); // Set width kolom E
+		$excel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true); // Set width kolom F
+		$excel->getActiveSheet()->getColumnDimension('G')->setAutoSize(true); // Set width kolom G
 
 		$excel->getActiveSheet()->setTitle('Item List');
 
