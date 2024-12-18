@@ -2276,6 +2276,75 @@ class Asset extends CI_Controller
 		$this->load->view('index', $data);
 	}
 
+	public function direksi_ops_approve()
+	{
+		$nip = $this->session->userdata('nip');
+		// Pagination
+		$keyword = htmlspecialchars($this->input->get('keyword') ?? '', ENT_QUOTES, 'UTF-8');
+		$config['base_url'] = base_url('asset/direksi_ops_approve');
+		$config['total_rows'] = $this->m_asset->count_ro($keyword, ['status_sarlog' => 1, 'direksi_ops' => $nip, 'status_direksi_ops' => 0]);
+		$config['per_page'] = 10;
+		$config['uri_segment'] = 3;
+		$config['num_links'] = 10;
+		$config['enable_query_strings'] = TRUE;
+		$config['page_query_string'] = TRUE;
+		$config['use_page_numbers'] = TRUE;
+		$config['reuse_query_string'] = TRUE;
+		$config['query_string_segment'] = 'page';
+
+		// Bootstrap style pagination
+		$config['full_tag_open'] = '<ul class="pagination">';
+		$config['full_tag_close'] = '</ul>';
+		$config['first_link'] = false;
+		$config['last_link'] = false;
+		$config['first_tag_open'] = '<li>';
+		$config['first_tag_close'] = '</li>';
+		$config['prev_link'] = '«';
+		$config['prev_tag_open'] = '<li class="prev">';
+		$config['prev_tag_close'] = '</li>';
+		$config['next_link'] = '»';
+		$config['next_tag_open'] = '<li>';
+		$config['next_tag_close'] = '</li>';
+		$config['last_tag_open'] = '<li>';
+		$config['last_tag_close'] = '</li>';
+		$config['cur_tag_open'] = '<li class="active"><a href="#">';
+		$config['cur_tag_close'] = '</a></li>';
+		$config['num_tag_open'] = '<li>';
+		$config['num_tag_close'] = '</li>';
+
+		// Initialize paginaton
+		$this->pagination->initialize($config);
+		$page = ($this->input->get('page')) ? (($this->input->get('page') - 1) * $config['per_page']) : 0;
+		$data['page'] = $page;
+		$data['pagination'] = $this->pagination->create_links();
+		$sql = "SELECT COUNT(Id) FROM memo WHERE (nip_kpd LIKE '%$nip%' OR nip_cc LIKE '%$nip%') AND (`read` NOT LIKE '%$nip%');";
+		$sql2 = "SELECT * FROM asset_ruang";
+		$sql3 = "SELECT * FROM asset_lokasi";
+		$query = $this->db->query($sql);
+		$query2 = $this->db->query($sql2);
+		$query3 = $this->db->query($sql3);
+		$res2 = $query->result_array();
+		$asset_ruang = $query2->result();
+		$asset_lokasi = $query3->result();
+		$result = $res2[0]['COUNT(Id)'];
+		$data['count_inbox'] = $result;
+		$data['asset_ruang'] = $asset_ruang;
+		$data['asset_lokasi'] = $asset_lokasi;
+
+		// Tello
+		$sql4 = "SELECT COUNT(Id) FROM task WHERE (`member` LIKE '%$nip%' or `pic` like '%$nip%') and activity='1'";
+		$query4 = $this->db->query($sql4);
+		$res4 = $query4->result_array();
+		$result4 = $res4[0]['COUNT(Id)'];
+		$data['count_inbox2'] = $result4;
+
+		$data['ro'] = $this->m_asset->get_roList($config['per_page'], $page, $keyword, ['status_sarlog' => 1, 'status_direksi_ops' => 0, 'direksi_ops' => $nip]);
+		$data['direksi'] = $this->db->get_where('users', ['level_jabatan >' => 4])->result_array();
+		$data['title'] = "List PO Item Out Direksi";
+		$data['pages'] = "pages/aset/v_direksi_ops_out";
+		$this->load->view('index', $data);
+	}
+
 	public function update_direksi_ops_out()
 	{
 		$id = $this->input->post('id_po');
@@ -3319,6 +3388,7 @@ class Asset extends CI_Controller
 
 			$data['title'] = "Report asset";
 			$data['asset'] = $this->db->get('asset_list');
+			$data['result'] = $this->m_asset->report_asset();
 			$data['pages'] = 'pages/aset/v_report_asset';
 			$this->load->view('index', $data);
 		} else {

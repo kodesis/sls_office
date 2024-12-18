@@ -16,8 +16,9 @@
               <a href="<?= base_url('asset/sarlog_out') ?>" class="btn btn-success btn-sm">Approval Sarlog <span class="badge bg-red"><?= $count_sarlog ?></span></a>
             <?php }
             if ($this->session->userdata('bagian') == 10) { ?>
-              <a href="<?= base_url('asset/direksi_ops_out') ?>" class="btn btn-success btn-sm">Approval Direktur Ops
-                <span class="badge bg-red"><?= $count_dirops ?></span></a>
+              <a href="<?= base_url('asset/direksi_ops_out') ?>" class="btn btn-success btn-sm">Approval Direktur Ops</a>
+              <a href="<?= base_url('asset/direksi_ops_approve') ?>" class="btn btn-success btn-sm">Belum Proses <span class="badge bg-red"><?= $count_dirops ?></span></a>
+
             <?php }
             ?>
           </div>

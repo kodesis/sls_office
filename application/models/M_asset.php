@@ -200,4 +200,10 @@ class M_asset extends CI_Model
 	{
 		return $this->cb->get_where('t_po', $where)->num_rows();
 	}
+
+	public function report_asset()
+	{
+		$sql = "SELECT a.tanggal, a.jenis, a.harga, a.jml, a.serial_number, b.nama, c.nama_asset FROM working_supply a LEFT JOIN asset_list c ON c.Id = a.asset_id LEFT JOIN item_list b ON b.Id = a.item_id WHERE a.jenis LIKE '%OUT%'";
+		return $this->db->query($sql);
+	}
 }
