@@ -1013,6 +1013,82 @@ class Asset extends CI_Controller
 		}
 	}
 
+	public function sarlog_approve()
+	{
+		$a = $this->session->userdata('level');
+		if (strpos($a, '503') !== false) {
+			$filter = $this->input->get('vendor');
+			$keyword = htmlspecialchars($this->input->get('keyword') ?? '', ENT_QUOTES, 'UTF-8');
+			$config['base_url'] = base_url('asset/sarlog_approve');
+			$config['total_rows'] = $this->m_asset->count_po($keyword, ['status_sarlog' => 0], $filter);
+			$config['per_page'] = 20;
+			$config['uri_segment'] = 3;
+			$config['num_links'] = 10;
+			$config['enable_query_strings'] = TRUE;
+			$config['page_query_string'] = TRUE;
+			$config['use_page_numbers'] = TRUE;
+			$config['reuse_query_string'] = TRUE;
+			$config['query_string_segment'] = 'page';
+
+			// Bootstrap style pagination
+			$config['full_tag_open'] = '<ul class="pagination">';
+			$config['full_tag_close'] = '</ul>';
+			$config['first_link'] = false;
+			$config['last_link'] = false;
+			$config['first_tag_open'] = '<li>';
+			$config['first_tag_close'] = '</li>';
+			$config['prev_link'] = '«';
+			$config['prev_tag_open'] = '<li class="prev">';
+			$config['prev_tag_close'] = '</li>';
+			$config['next_link'] = '»';
+			$config['next_tag_open'] = '<li>';
+			$config['next_tag_close'] = '</li>';
+			$config['last_tag_open'] = '<li>';
+			$config['last_tag_close'] = '</li>';
+			$config['cur_tag_open'] = '<li class="active"><a href="#">';
+			$config['cur_tag_close'] = '</a></li>';
+			$config['num_tag_open'] = '<li>';
+			$config['num_tag_close'] = '</li>';
+
+			// Initialize paginaton
+			$this->pagination->initialize($config);
+			$page = ($this->input->get('page')) ? (($this->input->get('page') - 1) * $config['per_page']) : 0;
+			$data['pagination'] = $this->pagination->create_links();
+			//inbox notif
+			$nip = $this->session->userdata('nip');
+			$sql = "SELECT COUNT(Id) FROM memo WHERE (nip_kpd LIKE '%$nip%' OR nip_cc LIKE '%$nip%') AND (`read` NOT LIKE '%$nip%');";
+			$sql2 = "SELECT * FROM asset_ruang";
+			$sql3 = "SELECT * FROM asset_lokasi";
+			$query = $this->db->query($sql);
+			$query2 = $this->db->query($sql2);
+			$query3 = $this->db->query($sql3);
+			$res2 = $query->result_array();
+			$asset_ruang = $query2->result();
+			$asset_lokasi = $query3->result();
+			$result = $res2[0]['COUNT(Id)'];
+			$data['count_inbox'] = $result;
+			$data['asset_ruang'] = $asset_ruang;
+			$data['asset_lokasi'] = $asset_lokasi;
+
+			// Tello
+			$sql4 = "SELECT COUNT(Id) FROM task WHERE (`member` LIKE '%$nip%' or `pic` like '%$nip%') and activity='1'";
+			$query4 = $this->db->query($sql4);
+			$res4 = $query4->result_array();
+			$result4 = $res4[0]['COUNT(Id)'];
+			$data['count_inbox2'] = $result4;
+
+			$data['po'] = $this->m_asset->get_poList($config['per_page'], $page, $keyword, ['status_sarlog' => 0], $filter);
+			$data['coa'] = $this->cb->get('v_coa_all');
+			$data['direksi'] = $this->db->get_where('users', ['level_jabatan >' => 4])->result_array();
+			$data['hutang'] = $this->m_asset->hutang_vendor($filter);
+			$data['title'] = "PO List Sarlog";
+			$data['pages'] = "pages/aset/v_sarlog";
+			$this->load->view('index', $data);
+		} else {
+			redirect('home');
+		}
+	}
+
 	public function update_sarlog()
 	{
 		$a = $this->session->userdata('level');
@@ -2112,6 +2188,76 @@ class Asset extends CI_Controller
 		$data['count_inbox2'] = $result4;
 
 		$data['ro'] = $this->m_asset->get_roList($config['per_page'], $page, $keyword, ['user !=' => $this->session->userdata('nip')]);
+		$data['direksi'] = $this->db->get_where('users', ['level_jabatan >' => 4])->result_array();
+		$data['title'] = "Release Order";
+		$data['pages'] = "pages/aset/v_sarlog_out";
+		$this->load->view('index', $data);
+	}
+
+	public function sarlog_out_approve()
+	{
+		// Pagination
+		$keyword = htmlspecialchars($this->input->get('keyword') ?? '', ENT_QUOTES, 'UTF-8');
+		$config['base_url'] = base_url('asset/sarlog_out_approve');
+		$config['total_rows'] = $this->m_asset->count_ro($keyword, ['user !=' => $this->session->userdata('nip'), 'status_sarlog' => 0]);
+		$config['per_page'] = 20;
+		$config['uri_segment'] = 3;
+		$config['num_links'] = 10;
+		$config['enable_query_strings'] = TRUE;
+		$config['page_query_string'] = TRUE;
+		$config['use_page_numbers'] = TRUE;
+		$config['reuse_query_string'] = TRUE;
+		$config['query_string_segment'] = 'page';
+
+		// Bootstrap style pagination
+		$config['full_tag_open'] = '<ul class="pagination">';
+		$config['full_tag_close'] = '</ul>';
+		$config['first_link'] = false;
+		$config['last_link'] = false;
+		$config['first_tag_open'] = '<li>';
+		$config['first_tag_close'] = '</li>';
+		$config['prev_link'] = '«';
+		$config['prev_tag_open'] = '<li class="prev">';
+		$config['prev_tag_close'] = '</li>';
+		$config['next_link'] = '»';
+		$config['next_tag_open'] = '<li>';
+		$config['next_tag_close'] = '</li>';
+		$config['last_tag_open'] = '<li>';
+		$config['last_tag_close'] = '</li>';
+		$config['cur_tag_open'] = '<li class="active"><a href="#">';
+		$config['cur_tag_close'] = '</a></li>';
+		$config['num_tag_open'] = '<li>';
+		$config['num_tag_close'] = '</li>';
+
+		// Initialize paginaton
+		$this->pagination->initialize($config);
+		$page = ($this->input->get('page')) ? (($this->input->get('page') - 1) * $config['per_page']) : 0;
+		$data['page'] = $page;
+		$data['pagination'] = $this->pagination->create_links();
+		//inbox notif
+		$nip = $this->session->userdata('nip');
+		$sql = "SELECT COUNT(Id) FROM memo WHERE (nip_kpd LIKE '%$nip%' OR nip_cc LIKE '%$nip%') AND (`read` NOT LIKE '%$nip%');";
+		$sql2 = "SELECT * FROM asset_ruang";
+		$sql3 = "SELECT * FROM asset_lokasi";
+		$query = $this->db->query($sql);
+		$query2 = $this->db->query($sql2);
+		$query3 = $this->db->query($sql3);
+		$res2 = $query->result_array();
+		$asset_ruang = $query2->result();
+		$asset_lokasi = $query3->result();
+		$result = $res2[0]['COUNT(Id)'];
+		$data['count_inbox'] = $result;
+		$data['asset_ruang'] = $asset_ruang;
+		$data['asset_lokasi'] = $asset_lokasi;
+
+		// Tello
+		$sql4 = "SELECT COUNT(Id) FROM task WHERE (`member` LIKE '%$nip%' or `pic` like '%$nip%') and activity='1'";
+		$query4 = $this->db->query($sql4);
+		$res4 = $query4->result_array();
+		$result4 = $res4[0]['COUNT(Id)'];
+		$data['count_inbox2'] = $result4;
+
+		$data['ro'] = $this->m_asset->get_roList($config['per_page'], $page, $keyword, ['user !=' => $this->session->userdata('nip'), 'status_sarlog' => 0]);
 		$data['direksi'] = $this->db->get_where('users', ['level_jabatan >' => 4])->result_array();
 		$data['title'] = "Release Order";
 		$data['pages'] = "pages/aset/v_sarlog_out";
@@ -3503,20 +3649,159 @@ class Asset extends CI_Controller
 		$dari = $this->input->post('dari');
 		$sampai = $this->input->post('sampai');
 
-		$sql = "SELECT * FROM working_supply WHERE asset_id = '$item' and (tanggal >= '$dari' AND tanggal <= '$sampai')";
+		$file = $this->input->post('jenis-file');
+
+		if ($item == 'all') {
+			$sql = "SELECT a.asset_id, sum(a.harga * a.jml) as total_biaya, b.nama_asset FROM working_supply a JOIN asset_list b ON b.Id = a.asset_id WHERE a.jenis LIKE '%OUT%'AND (tanggal >= '$dari' AND tanggal <= '$sampai') GROUP BY a.asset_id ORDER BY b.nama_asset ASC";
+			$file_pdf = 'Penggunaan Asset';
+		} else {
+			$sql = "SELECT * FROM working_supply WHERE asset_id = '$item' and (tanggal >= '$dari' AND tanggal <= '$sampai')";
+			$data['asset'] = $this->db->get_where('asset_list', ['Id' => $item])->row_array();
+			$file_pdf = 'Penggunaan Asset . ' . $data['asset']['nama_asset'];
+		}
+
 		$data['report'] = $this->db->query($sql)->result_array();
-		$data['asset'] = $this->db->get_where('asset_list', ['Id' => $item])->row_array();
-		$file_pdf = 'Penggunaan Asset . ' . $data['asset']['nama_asset'];
-		// setting paper
-		$paper = 'A4';
 
-		//orientasi paper potrait / landscape
-		$orientation = "landscape";
+		if ($file == 'pdf') {
+			// setting paper
+			$paper = 'A4';
 
-		$html = $this->load->view('pages/aset/v_report_asset_pdf', $data, true);
+			//orientasi paper potrait / landscape
+			$orientation = "landscape";
 
-		$this->pdfgenerator->generate($html, $file_pdf, $paper, $orientation);
-		// $this->load->view('pages/aset/v_report_asset_pdf', $data);
+			$html = $this->load->view('pages/aset/v_report_asset_pdf', $data, true);
+
+			$this->pdfgenerator->generate($html, $file_pdf, $paper, $orientation);
+			// $this->load->view('pages/aset/v_report_asset_pdf', $data);
+		}
+
+		if ($file == 'excel') {
+			$namaFile = 'Report Asset ' . tgl_indo(date('Y-m-d', strtotime($dari))) . ' s/d ' . tgl_indo(date('Y-m-d', strtotime($sampai)));
+			require_once(APPPATH . 'libraries/PHPExcel/IOFactory.php');
+			$excel = new PHPExcel();
+
+			$excel->getProperties()->setCreator('SLS')
+				->setLastModifiedBy('SLS')
+				->setTitle("Report Asset")
+				->setSubject("Report Asset")
+				->setDescription("Report Asset")
+				->setKeywords("Report Asset");
+
+			$style_col = [
+				'font' => ['bold' => true],
+				'alignment' => ['horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER, 'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER],
+				'borders' => ['top' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'right' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'bottom' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'left' => ['style'  => PHPExcel_Style_Border::BORDER_THIN]]
+			];
+
+			$style_row = [
+				'alignment' => ['vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER],
+				'borders' => ['top' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'right' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'bottom' => ['style'  => PHPExcel_Style_Border::BORDER_THIN], 'left' => ['style'  => PHPExcel_Style_Border::BORDER_THIN]]
+			];
+
+			if ($item == 'all') {
+				$excel->setActiveSheetIndex(0)->setCellValue('A2', "No.");
+				$excel->setActiveSheetIndex(0)->setCellValue('B2', "Nama Asset");
+				$excel->setActiveSheetIndex(0)->setCellValue('C2', "Jumlah");
+
+				$excel->getActiveSheet()->getStyle('A2')->applyFromArray($style_col);
+				$excel->getActiveSheet()->getStyle('B2')->applyFromArray($style_col);
+				$excel->getActiveSheet()->getStyle('C2')->applyFromArray($style_col);
+
+				$no = 1;
+				$numrow = 3;
+				foreach ($data['report'] as $r) {
+					$excel->setActiveSheetIndex(0)->setCellValue('A' . $numrow, $no);
+					$excel->setActiveSheetIndex(0)->setCellValue('B' . $numrow, $r['nama_asset']);
+					$excel->setActiveSheetIndex(0)->setCellValue('C' . $numrow, $r['total_biaya']);
+
+					foreach (range('A', 'C') as $columnID) {
+						$excel->getActiveSheet()->getStyle($columnID . $numrow)->applyFromArray($style_row);
+					}
+
+					$no++;
+					$numrow++;
+				}
+				$excel->getActiveSheet()->getColumnDimension('A')->setAutoSize(true); // Set width kolom A
+				$excel->getActiveSheet()->getColumnDimension('B')->setAutoSize(true); // Set width kolom B
+				$excel->getActiveSheet()->getColumnDimension('C')->setAutoSize(true); // Set width kolom C
+			} else {
+				$namaFile = 'Report Asset';
+
+				$excel->setActiveSheetIndex(0)->setCellValue('A2', "No.");
+				$excel->setActiveSheetIndex(0)->setCellValue('B2', "Tanggal");
+				$excel->setActiveSheetIndex(0)->setCellValue('C2', "Keterangan");
+				$excel->setActiveSheetIndex(0)->setCellValue('D2', "Item");
+				$excel->setActiveSheetIndex(0)->setCellValue('E2', "Serial Number");
+				$excel->setActiveSheetIndex(0)->setCellValue('F2', "Jumlah");
+				$excel->setActiveSheetIndex(0)->setCellValue('G2', "Harga Satuan");
+				$excel->setActiveSheetIndex(0)->setCellValue('H2', "Total");
+
+
+				$excel->getActiveSheet()->getStyle('A2')->applyFromArray($style_col);
+				$excel->getActiveSheet()->getStyle('B2')->applyFromArray($style_col);
+				$excel->getActiveSheet()->getStyle('C2')->applyFromArray($style_col);
+				$excel->getActiveSheet()->getStyle('D2')->applyFromArray($style_col);
+				$excel->getActiveSheet()->getStyle('E2')->applyFromArray($style_col);
+				$excel->getActiveSheet()->getStyle('F2')->applyFromArray($style_col);
+				$excel->getActiveSheet()->getStyle('G2')->applyFromArray($style_col);
+				$excel->getActiveSheet()->getStyle('H2')->applyFromArray($style_col);
+
+				$no = 1;
+				$numrow = 3;
+				$total = 0;
+				foreach ($data['report'] as $i) {
+					$item = $this->db->get_where('item_list', ['Id' => $i['item_id']])->row_array();
+					$total += $i['harga'] * $i['jml'];
+					$serialAll = "";
+					if ($i['serial_number']) {
+						foreach (json_decode($i['serial_number']) as $s) {
+							if ($s != 0) {
+								$serial = $this->db->get_where('item_detail', ['Id' => $s])->row_array();
+								$serialAll .= $serial['serial_number'] . ',';
+							} else {
+								$serialAll = '-';
+							}
+						}
+					} else {
+						$serialAll = '-';
+					}
+
+					$excel->setActiveSheetIndex(0)->setCellValue('A' . $numrow, $no);
+					$excel->setActiveSheetIndex(0)->setCellValue('B' . $numrow, date('d/m/Y', strtotime($i['tanggal'])));
+					$excel->setActiveSheetIndex(0)->setCellValue('C' . $numrow, $i['jenis']);
+					$excel->setActiveSheetIndex(0)->setCellValue('D' . $numrow, $item['nama']);
+					$excel->setActiveSheetIndex(0)->setCellValue('E' . $numrow, $serialAll);
+					$excel->setActiveSheetIndex(0)->setCellValue('F' . $numrow, $i['harga']);
+					$excel->setActiveSheetIndex(0)->setCellValue('G' . $numrow, $i['jml']);
+					$excel->setActiveSheetIndex(0)->setCellValue('H' . $numrow, $i['harga'] * $i['jml']);
+
+					foreach (range('A', 'H') as $columnID) {
+						$excel->getActiveSheet()->getStyle($columnID . $numrow)->applyFromArray($style_row);
+					}
+
+					$no++;
+					$numrow++;
+				}
+				$excel->getActiveSheet()->getColumnDimension('A')->setAutoSize(true); // Set width kolom A
+				$excel->getActiveSheet()->getColumnDimension('B')->setAutoSize(true); // Set width kolom B
+				$excel->getActiveSheet()->getColumnDimension('C')->setAutoSize(true); // Set width kolom C
+				$excel->getActiveSheet()->getColumnDimension('D')->setAutoSize(true); // Set width kolom D
+				$excel->getActiveSheet()->getColumnDimension('E')->setAutoSize(true); // Set width kolom E
+				$excel->getActiveSheet()->getColumnDimension('F')->setAutoSize(true); // Set width kolom F
+				$excel->getActiveSheet()->getColumnDimension('G')->setAutoSize(true); // Set width kolom G
+				$excel->getActiveSheet()->getColumnDimension('H')->setAutoSize(true); // Set width kolom H
+			}
+
+			header('Content-Type: application/vnd.ms-excel');
+			header('Content-Disposition: attachment;filename="' . $namaFile . '.xls"');
+			header('Cache-Control: max-age=0');
+			header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+			header('Cache-Control: cache, must-revalidate');
+			header('Pragma: public');
+
+			$objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
+			$objWriter->save('php://output');
+		}
 	}
 
 

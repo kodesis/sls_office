@@ -12,7 +12,8 @@
                         <a href="<?= base_url('asset/purchaseorder') ?>" class="btn btn-primary btn-sm"><i class="fa fa-plus" aria-hidden="true"></i> Create PO</a>
                         <?php $a = $this->session->userdata('level');
                         if (strpos($a, '503') !== false) { ?>
-                            <a href="<?= base_url('asset/sarlog') ?>" class="btn btn-success btn-sm">Approval Sarlog <span class="badge bg-red"><?= $count_sarlog ?></span></a>
+                            <a href="<?= base_url('asset/sarlog') ?>" class="btn btn-success btn-sm">Approval Sarlog</a>
+                            <a href="<?= base_url('asset/sarlog_approve') ?>" class="btn btn-success btn-sm">Belum Proses <span class="badge bg-red"><?= $count_sarlog ?></span></a>
                         <?php }
                         if ($this->session->userdata('bagian') == 10) { ?>
                             <a href="<?= base_url('asset/direksi_ops') ?>" class="btn btn-success btn-sm">Approval Direktur Ops <span class="badge bg-red"><?= $count_dirops ?></span></a>

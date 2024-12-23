@@ -30,15 +30,27 @@
       </div>
       <div class="row">
         <div class="col-md-6 col-sm-12 col-xs-12" style="padding: 0 !important; margin: 0 !important">
-          <form action="">
-            <div class="input-group">
-              <input type="text" class="form-control" id="keyword" name="keyword" placeholder="Cari no purchase order" value="<?= $this->input->get('keyword') ?>">
-              <span class="input-group-btn">
-                <button class="btn btn-default" type="submit">Search</button>
-                <a href="<?= base_url('asset/sarlog') ?>" class="btn btn-warning" style="color:white;">Reset</a>
-              </span>
-            </div><!-- /input-group -->
-          </form>
+          <?php if ($this->uri->segment(2) == 'sarlog_approve') { ?>
+            <form action="<?= base_url('asset/sarlog_approve') ?>" method="get">
+              <div class="input-group">
+                <input type="text" class="form-control" id="keyword" name="keyword" placeholder="Cari no purchase order" value="<?= $this->input->get('keyword') ?>">
+                <span class="input-group-btn">
+                  <button class="btn btn-default" type="submit">Search</button>
+                  <a href="<?= base_url('asset/sarlog_approve') ?>" class="btn btn-warning" style="color:white;">Reset</a>
+                </span>
+              </div><!-- /input-group -->
+            </form>
+          <?php } else { ?>
+            <form action="<?= base_url('asset/sarlog') ?>" method="get">
+              <div class="input-group">
+                <input type="text" class="form-control" id="keyword" name="keyword" placeholder="Cari no purchase order" value="<?= $this->input->get('keyword') ?>">
+                <span class="input-group-btn">
+                  <button class="btn btn-default" type="submit">Search</button>
+                  <a href="<?= base_url('asset/sarlog') ?>" class="btn btn-warning" style="color:white;">Reset</a>
+                </span>
+              </div><!-- /input-group -->
+            </form>
+          <?php } ?>
         </div>
         <div class="col-md-6 col-sm-12 col-xs-12" style="padding: 0 !important; margin: 0 !important">
           <form method="get" id="form-filter">

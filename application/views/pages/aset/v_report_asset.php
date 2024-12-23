@@ -22,26 +22,36 @@
                   <label for="asset">Nama Asset</label>
                   <select name="asset" id="asset" class="form-control select2" required>
                     <option value=""> :: Pilih Item :: </option>
+                    <option value="all"> ALL </option>
                     <?php foreach ($asset->result_array() as $a) { ?>
                       <option value="<?= $a['Id'] ?>"><?= $a['nama_asset'] . ' | ' ?></option>
                     <?php } ?>
                   </select>
                 </div>
               </div>
-              <div class="col-md-3 col-sm-3 col-xs-12">
+              <div class="col-md-2 col-sm-2 col-xs-12">
                 <div class="form">
                   <label for="asset">Dari</label>
                   <input type="date" class="form-control" name="dari" id="dari" required>
                 </div>
               </div>
-              <div class="col-md-3 col-sm-3 col-xs-12">
+              <div class="col-md-2 col-sm-2 col-xs-12">
                 <div class="form">
                   <label for="asset">sampai</label>
                   <input type="date" class="form-control" name="sampai" id="sampai" value="<?= date('Y-m-d') ?>">
                 </div>
               </div>
+              <div class="col-md-2 col-sm-2 col-xs-12">
+                <div class="form">
+                  <label for="asset">Jenis File</label>
+                  <select name="jenis-file" id="jenis-file" class="form-control select2">
+                    <option value="excel">Excel</option>
+                    <option value="pdf">PDF</option>
+                  </select>
+                </div>
+              </div>
               <div class="col-md-2" style="margin-top: 24px;">
-                <button type="submit" class="btn btn-primary">Search</button>
+                <button type="submit" class="btn btn-primary">Export</button>
               </div>
             </div>
           </form>
