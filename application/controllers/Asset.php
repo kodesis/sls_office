@@ -517,7 +517,7 @@ class Asset extends CI_Controller
 				];
 			} else {
 				// $sql = "SELECT MAX(nomor) as maximal FROM letter LEFT JOIN jenis_surat ON letter.jenis_surat = jenis_surat.id WHERE jenis_surat.company = '$jenis_surat->company' AND YEAR(date_created) = YEAR(curdate()) AND letter.back_date = 0;";
-				$sql = "SELECT count(a.Id) as jml FROM t_po as a WHERE a.vendor ='$vendor' AND YEAR(tgl_pengajuan) = YEAR(curdate())";
+				$sql = "SELECT count(a.Id) as jml FROM t_po as a WHERE a.vendor ='$vendor' AND YEAR(tgl_pengajuan) = " . date('Y', strtotime($tgl));
 				$result = $this->cb->query($sql);
 
 				if ($result->num_rows() > 0) {
@@ -528,13 +528,16 @@ class Asset extends CI_Controller
 				}
 				$data_vendor = $this->db->get_where('t_vendors', ['Id' => $vendor])->row_array();
 				$array_bln = array(1 => "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII");
-				$bln = $array_bln[date('n')];
+				$bln = $array_bln[date('n', strtotime($tgl))];
 				$no_po = sprintf("%06d", $nomor) . '-' . $data_vendor['kode'];
-				$ref = "PO-" . sprintf("%06d", $nomor) . '/' . $bln . '/' . $data_vendor['kode'] . '/' . date('y');
+				$ref = "PO-" . sprintf("%06d", $nomor) . '/' . $bln . '/' . $data_vendor['kode'] . '/' . date('y', strtotime($tgl));
 
 				// $count = $this->cb->get('t_po')->num_rows();
 				// $count = $count + 1;
 				// $no_po = sprintf("%06d", $count);
+
+				$this->cb->trans_begin();
+				$this->db->trans_begin();
 
 				$insert = [
 					'no_po' => $no_po,
@@ -562,6 +565,32 @@ class Asset extends CI_Controller
 						'keterangan' => $keterangan[$i]
 					];
 
+					if (str_replace('.', '', $subtotal[$i]) != str_replace('.', '', $qty[$i]) * str_replace('.', '', $price[$i])) {
+						$this->cb->trans_rollback();
+						$this->db->trans_rollback();
+
+						$response = [
+							'success' => false,
+							'msg' => 'Cek kembali total pengajuan anda!'
+						];
+
+						echo json_encode($response);
+						return false;
+					}
+
+					if (str_replace('.', '', $qty[$i]) < 1) {
+						$this->cb->trans_rollback();
+						$this->db->trans_rollback();
+
+						$response = [
+							'success' => false,
+							'msg' => 'Qty tidak boleh kosong!'
+						];
+
+						echo json_encode($response);
+						return false;
+					}
+
 					$this->cb->insert('t_po_detail', $detail);
 				}
 
@@ -581,6 +610,9 @@ class Asset extends CI_Controller
 					'success' => true,
 					'msg' => 'PO berhasil dibuat!'
 				];
+
+				$this->cb->trans_commit();
+				$this->db->trans_commit();
 			}
 
 			echo json_encode($response);
@@ -655,7 +687,8 @@ class Asset extends CI_Controller
 					'msg' => array_values($this->form_validation->error_array())[0]
 				];
 			} else {
-
+				$this->cb->trans_begin();
+				$this->db->trans_begin();
 				$update = [
 					'user' => $nip,
 					'tgl_pengajuan' => $tgl,
@@ -693,6 +726,32 @@ class Asset extends CI_Controller
 						'keterangan' => $keterangan[$i]
 					];
 
+					if (str_replace('.', '', $subtotal[$i]) != str_replace('.', '', $qty[$i]) * str_replace('.', '', $price[$i])) {
+						$this->cb->trans_rollback();
+						$this->db->trans_rollback();
+
+						$response = [
+							'success' => false,
+							'msg' => 'Cek kembali total pengajuan anda!'
+						];
+
+						echo json_encode($response);
+						return false;
+					}
+
+					if (str_replace('.', '', $qty[$i]) < 1) {
+						$this->cb->trans_rollback();
+						$this->db->trans_rollback();
+
+						$response = [
+							'success' => false,
+							'msg' => 'Qty tidak boleh kosong!'
+						];
+
+						echo json_encode($response);
+						return false;
+					}
+
 					$this->cb->insert('t_po_detail', $detail);
 				}
 
@@ -712,6 +771,9 @@ class Asset extends CI_Controller
 					'success' => true,
 					'msg' => 'PO berhasil diubah!'
 				];
+
+				$this->cb->trans_commit();
+				$this->db->trans_commit();
 			}
 
 			echo json_encode($response);
@@ -759,6 +821,8 @@ class Asset extends CI_Controller
 
 			$insert_detail = array();
 
+			$this->cb->trans_begin();
+			$this->db->trans_begin();
 			for ($i = 0; $i < count($rows); $i++) {
 				// $this->db->select('Id, kode_item, serial_number');
 				// $item_detail[] = $this->db->get_where('item_detail', ['kode_item' => $item[$i]])->result_array();
@@ -774,7 +838,9 @@ class Asset extends CI_Controller
 					'keterangan' => $keterangan[$i]
 				));
 
-				if ($qty[$i] < 1) {
+				if (str_replace('.', '', $qty[$i]) < 1) {
+					$this->cb->trans_rollback();
+					$this->db->trans_rollback();
 					$response = [
 						'success' => false,
 						'msg' => 'Stok item ' . $item_list[$i]['nama'] . ' tidak boleh kosong'
@@ -786,7 +852,9 @@ class Asset extends CI_Controller
 					return false;
 				}
 
-				if ($qty[$i] > $item_list[$i]['stok']) {
+				if (str_replace('.', '', $qty[$i]) > $item_list[$i]['stok']) {
+					$this->cb->trans_rollback();
+					$this->db->trans_rollback();
 					$response = [
 						'success' => false,
 						'msg' => 'Stok item ' . $item_list[$i]['nama'] . ' kurang'
@@ -798,18 +866,20 @@ class Asset extends CI_Controller
 					return false;
 				}
 
-				// $insert_detail = [
-				// 	'no_ro' => $ro['Id'],
-				// 	'item' => $item[$i],
-				// 	'asset' => $asset[$i],
-				// 	'qty' => preg_replace('/[^a-zA-Z0-9\']/', '', $qty[$i]),
-				// 	'uoi' => $uoi[$i],
-				// 	'price' => preg_replace('/[^a-zA-Z0-9\']/', '', $price[$i]),
-				// 	'total' => preg_replace('/[^a-zA-Z0-9\']/', '', $sub_total[$i]),
-				// 	'keterangan' => $keterangan[$i]
-				// ];
+				if (str_replace('.', '', $sub_total[$i]) != str_replace('.', '', $qty[$i]) * str_replace('.', '', $price[$i])) {
+					$this->cb->trans_rollback();
+					$this->db->trans_rollback();
 
-				// $this->cb->insert('t_ro_detail', $insert_detail);
+					$response = [
+						'success' => false,
+						'msg' => 'Cek kembali total pengajuan anda!'
+					];
+
+					$insert_detail = [];
+
+					echo json_encode($response);
+					return false;
+				}
 			}
 
 			if (count($insert_detail) > 0) {
@@ -854,6 +924,9 @@ class Asset extends CI_Controller
 				'success' => true,
 				'msg' => 'Release Order berhasil Diubah!'
 			];
+
+			$this->db->trans_commit();
+			$this->cb->trans_commit();
 		}
 		echo json_encode($response);
 	}
@@ -1928,20 +2001,14 @@ class Asset extends CI_Controller
 		$this->form_validation->set_rules('qty_out[]', 'qty', 'required', ['required' => '%s wajib diisi!']);
 		$this->form_validation->set_rules('harga_out[]', 'harga', 'required', ['required' => '%s wajib diisi!']);
 		$this->form_validation->set_rules('uoi_out[]', 'uoi', 'required', ['required' => '%s wajib diisi!']);
-		// for ($i = 0; $i < count($rows); $i++) {
-		// 	$detail[] = $this->db->get_where('item_detail', ['kode_item' => $item[$i], 'status' => 'A']);
-		// 	if ($detail[$i]->num_rows() > 0) {
-		// 		$this->form_validation->set_rules('detail_item[]', 'detail item', 'required', ['required' => '%s wajib diisi!']);
-		// 	}
-		// }
 
 		if ($this->form_validation->run() == FALSE) {
 			$response = [
 				'success' => false,
-				'msg' => array_values($this->form_validation->error_array())[0]
+				'msg' => array_values($this->form_validation->error_array())[0],
 			];
 		} else {
-			$sql = "SELECT count(a.Id) as jml FROM t_ro as a WHERE YEAR(tgl_pengajuan) = YEAR(curdate())";
+			$sql = 'SELECT count(a.Id) as jml FROM t_ro as a WHERE YEAR(tgl_pengajuan) = ' . date('Y', strtotime($tgl));
 			$result = $this->cb->query($sql);
 
 			if ($result->num_rows() > 0) {
@@ -1952,10 +2019,12 @@ class Asset extends CI_Controller
 			}
 
 			$array_bln = array(1 => "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII");
-			$bln = $array_bln[date('n')];
+			$bln = $array_bln[date('n', strtotime($tgl))];
 			$no_ro = sprintf("%06d", $nomor) . '-OUT';
-			$ref = "RO-" . sprintf("%06d", $nomor) . '/' . $bln . '/OUT' . '/' . date('y');
+			$ref = "RO-" . sprintf("%06d", $nomor) . '/' . $bln . '/OUT' . '/' . date('y', strtotime($tgl));
 
+			$this->cb->trans_begin();
+			$this->db->trans_begin();
 			$insert = [
 				'tgl_pengajuan' => $tgl,
 				'user' => $this->session->userdata('nip'),
@@ -1966,8 +2035,20 @@ class Asset extends CI_Controller
 				'teknisi' => $teknisi
 			];
 
-			$this->cb->insert('t_ro', $insert);
+			$insert_ro = $this->cb->insert('t_ro', $insert);
 			$last_id = $this->cb->insert_id();
+
+			if (!$insert_ro) {
+				$this->cb->trans_rollback();
+				$this->db->trans_rollback();
+				$response = [
+					'success' => false,
+					'msg' => 'Gagal Input Release Order!'
+				];
+
+				echo json_encode($response);
+				return false;
+			}
 
 			$insert_detail = array();
 
@@ -1985,7 +2066,25 @@ class Asset extends CI_Controller
 					'keterangan' => $keterangan[$i]
 				));
 
-				if ($qty[$i] < 1) {
+				if (str_replace('.', '', $sub_total[$i]) != str_replace('.', '', $qty[$i]) * str_replace('.', '', $price[$i])) {
+					$this->cb->trans_rollback();
+					$this->db->trans_rollback();
+
+					$response = [
+						'success' => false,
+						'msg' => 'Cek kembali total pengajuan anda!'
+					];
+
+					$insert_detail = [];
+
+					echo json_encode($response);
+					return false;
+				}
+
+				if (str_replace('.', '', $qty[$i]) < 1) {
+					$this->cb->trans_rollback();
+					$this->db->trans_rollback();
+
 					$response = [
 						'success' => false,
 						'msg' => 'Stok item ' . $item_list[$i]['nama'] . ' tidak boleh kosong'
@@ -1997,39 +2096,24 @@ class Asset extends CI_Controller
 					return false;
 				}
 
-				if ($qty[$i] > $item_list[$i]['stok']) {
+				if (str_replace('.', '', $qty[$i]) > $item_list[$i]['stok']) {
+					$this->cb->trans_rollback();
+					$this->db->trans_rollback();
+
 					$response = [
 						'success' => false,
 						'msg' => 'Stok item ' . $item_list[$i]['nama'] . ' kurang'
 					];
-
-					$this->cb->where('Id', $last_id);
-					$this->cb->delete('t_ro');
 
 					$insert_detail = [];
 
 					echo json_encode($response);
 					return false;
 				}
-				// $insert_detail = [
-				// 	'no_ro' => $last_id,
-				// 	'item' => $item[$i],
-				// 	'asset' => $asset[$i],
-				// 	'qty' => str_replace('.', '', $qty[$i]),
-				// 	'uoi' => $uoi[$i],
-				// 	'price' => str_replace('.', '', $price[$i]),
-				// 	'total' => str_replace('.', '', $sub_total[$i]),
-				// 	'keterangan' => $keterangan[$i]
-				// ];
-
-				// $this->cb->insert('t_ro_detail', $insert_detail);
 			}
 
 			if (count($insert_detail) > 0) {
 				$this->cb->insert_batch('t_ro_detail', $insert_detail);
-			} else {
-				$this->cb->where('Id', $last_id);
-				$this->cb->delete('t_ro');
 			}
 
 			$this->db->select('phone');
@@ -2048,6 +2132,8 @@ class Asset extends CI_Controller
 				'success' => true,
 				'msg' => 'Release Order berhasil diajukan!'
 			];
+			$this->db->trans_commit();
+			$this->cb->trans_commit();
 		}
 		echo json_encode($response);
 	}
@@ -2738,58 +2824,6 @@ class Asset extends CI_Controller
 					echo json_encode($response);
 					return false;
 				}
-
-				// update stok item list
-				// $this->db->where('Id', $item[$i]['item']);
-				// $this->db->update('item_list', ['stok' => $stok_akhir[$i]]);
-
-				// update status item detail 
-				// $this->db->where_in('Id', $detail_item[$i]);
-				// $this->db->update('item_detail', ['status' => 'O']);
-
-				// update table pengajuan detail
-				// $this->cb->where('Id', $id_item[$i]);
-				// $this->cb->update('t_ro_detail', [
-				// 	'persediaan' => $coa_persediaan[$i],
-				// 	'beban' => $coa_beban[$i],
-				// 	'detail' => json_encode($detail_item[$i])
-				// ]);
-
-				// create jurnal
-				// $jurnal = [
-				// 	'tanggal' => $date_serah,
-				// 	'akun_debit' => $coa_beban[$i],
-				// 	'jumlah_debit' => $item[$i]['total'],
-				// 	'akun_kredit' => $coa_persediaan[$i],
-				// 	'jumlah_kredit' => $item[$i]['total'],
-				// 	'saldo_debit' => $nominal_beban_baru[$i],
-				// 	'saldo_kredit' => $nominal_persediaan_baru[$i],
-				// 	'keterangan' => $item_list[$i]['nama'],
-				// 	'created_by' => $this->session->userdata('nip'),
-				// ];
-
-				// $this->cb->insert('jurnal_neraca', $jurnal);
-
-				// create item out
-				// $item_out = [
-				// 	'no_po' => $ro['Id'],
-				// 	'item_id' => $item[$i]['item'],
-				// 	'asset_id' => $item[$i]['asset'],
-				// 	'harga' => $item[$i]['price'],
-				// 	'jml' => $item[$i]['qty'],
-				// 	'status' => 1,
-				// 	'tanggal' => $date_serah,
-				// 	'user' => $ro['user'],
-				// 	'user_serah' => $this->session->userdata('nip'),
-				// 	'penerima' => $ro['teknisi'],
-				// 	'date_serah' => $date_serah,
-				// 	'stok_awal' => $stok_awal[$i],
-				// 	'stok_akhir' => $stok_akhir[$i],
-				// 	'jenis' => 'OUT',
-				// 	'keterangan' => $ro['teknisi'],
-				// 	'serial_number' => json_encode($detail_item[$i])
-				// ];
-				// $this->db->insert('working_supply', $item_out);
 			}
 
 			if (count($update_stok) > 0) {
