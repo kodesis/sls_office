@@ -313,7 +313,7 @@
                                 <div class="row">
                                   <div class="col-md-3 col-sm-6 col-xs-6">
                                     <label for="tanggal" class="form-label">Tanggal</label>
-                                    <input type="date" class="form-control" name="tanggal" id="tanggal" value="<?= date('Y-m-d') ?>">
+                                    <input type="date" class="form-control" name="tanggal" id="tanggal" value="<?= date('Y-m-d', strtotime($value['tgl_pengajuan'])) ?>">
                                   </div>
                                   <div class="col-md-3 col-sm-6 col-xs-6">
                                     <label for="status" class="form-label">Status</label>
