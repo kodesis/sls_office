@@ -19,7 +19,7 @@
                     </h2>
                     <ul class="nav navbar-right panel_toolbox">
                         <li class="dropdown">
-                            <a class="btn btn-warning btn-sm" href="<?= base_url('assets/format/format_data.xlsx') ?>" download style="font-size: 12px;padding: 5px 10px;color: white;">
+                            <a class="btn btn-warning btn-sm" href="<?= base_url('upload/format_data.xlsx') ?>" download style="font-size: 12px;padding: 5px 10px;color: white;">
                                 Download Format Data
                             </a>
                         </li>
