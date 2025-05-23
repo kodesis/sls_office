@@ -2212,9 +2212,11 @@ class Financial extends CI_Controller
                         'saldo_awal' => $item->saldo_awal,
                     ];
                 } else {
-                    $combinedBeban[$item->no_sbb]->saldo_awal += $item->saldo_awal;
+                    // $combinedBeban[$item->no_sbb]->saldo_awal += $item->saldo_awal;
+                    $combinedBeban[$item->no_sbb]->saldo_awal = round($combinedBeban[$item->no_sbb]->saldo_awal + $item->saldo_awal, 2);
                 }
             }
+
             foreach ($filteredCoaBeban as $item) {
                 if (!isset($combinedBeban[$item->no_sbb])) {
                     $combinedBeban[$item->no_sbb] = (object) [
@@ -2222,7 +2224,8 @@ class Financial extends CI_Controller
                         'saldo_awal' => $item->saldo_awal,
                     ];
                 } else {
-                    $combinedBeban[$item->no_sbb]->saldo_awal += $item->saldo_awal;
+                    // $combinedBeban[$item->no_sbb]->saldo_awal += $item->saldo_awal;
+                    $combinedBeban[$item->no_sbb]->saldo_awal = round($combinedBeban[$item->no_sbb]->saldo_awal + $item->saldo_awal, 2);
                 }
             }
             $total_beban = array_sum(array_column($combinedBeban, 'saldo_awal'));
