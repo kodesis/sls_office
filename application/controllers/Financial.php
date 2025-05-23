@@ -133,17 +133,17 @@ class Financial extends CI_Controller
             'jenis_fe' => $jenis_fe
         ];
 
-        $this->db->trans_begin();
+        $this->cb->trans_begin();
 
         if ($this->m_invoice->add_fe($data)) {
             $msg = "*FE - Need Approval*. %0aPengajuan Financial Entry oleh " . $this->session->userdata('nama') . ". %0aNo pengajuan:. " . $slug;
             $no_whatsapp = "6285240719210";
             $this->api_whatsapp->wa_notif($msg, $no_whatsapp);
-            $this->db->trans_commit();
+            $this->cb->trans_commit();
 
             $this->session->set_flashdata('message_name', 'Financial entry berhasil ditambahkan. Status: Menunggu approval.');
         } else {
-            $this->db->trans_rollback();
+            $this->cb->trans_rollback();
             $this->session->set_flashdata('message_error', 'Financial entry gagal dibuat. Silahkan coba lagi.');
         }
 
@@ -224,7 +224,7 @@ class Financial extends CI_Controller
                 ];
 
                 // Insert data
-                $this->db->trans_begin();
+                $this->cb->trans_begin();
                 $this->m_invoice->add_fe($dataToInsert);
 
                 $insertedRows++;
@@ -235,11 +235,11 @@ class Financial extends CI_Controller
             }
 
             // Commit transaction
-            if ($this->db->trans_status() === FALSE) {
-                $this->db->trans_rollback();
+            if ($this->cb->trans_status() === FALSE) {
+                $this->cb->trans_rollback();
                 echo json_encode(['status' => false, 'message' => 'Database error']);
             } else {
-                $this->db->trans_commit();
+                $this->cb->trans_commit();
                 echo json_encode(['status' => true, 'message' => 'File processed successfully']);
             }
         } catch (Exception $e) {
@@ -394,7 +394,7 @@ class Financial extends CI_Controller
         $keterangan = $fe['keterangan'];
         $tanggal_transaksi = $fe['tanggal_transaksi'];
 
-        $this->db->trans_begin();
+        $this->cb->trans_begin();
 
         if ($fe['jenis_fe'] == "multi_kredit") {
             $coa_debit = json_decode($fe['coa_debit'], true);
@@ -436,11 +436,11 @@ class Financial extends CI_Controller
             $no_whatsapp = $user['phone'];
             $this->api_whatsapp->wa_notif($msg, $no_whatsapp);
 
-            $this->db->trans_commit();
+            $this->cb->trans_commit();
 
             $this->session->set_flashdata('message_name', 'Financial entry telah disetujui!');
         } else {
-            $this->db->trans_rollback();
+            $this->cb->trans_rollback();
             $this->session->set_flashdata('message_error', 'Gagal setujui financial entry. Silahkan coba lagi');
         }
 
@@ -457,7 +457,7 @@ class Financial extends CI_Controller
         $nip = $this->session->userdata('nip');
 
         if ($startIndex !== false) {
-            $this->db->trans_begin(); // Mulai transaksi sebelum looping
+            $this->cb->trans_begin(); // Mulai transaksi sebelum looping
 
             for ($i = $startIndex; $i >= 0; $i--) {  // Loop dari indeks terakhir
                 $slug = $pilih[$i];
@@ -511,7 +511,7 @@ class Financial extends CI_Controller
                     $this->api_whatsapp->wa_notif($msg, $no_whatsapp);
                 } else {
 
-                    $this->db->trans_rollback();
+                    $this->cb->trans_rollback();
                     $this->session->set_flashdata('message_error', 'Gagal setujui financial entry. Silahkan coba lagi');
                     redirect('financial/fe_pending');
                     return;
@@ -519,11 +519,11 @@ class Financial extends CI_Controller
             }
 
             // Commit transaksi setelah seluruh iterasi selesai
-            if ($this->db->trans_status() === TRUE) {
-                $this->db->trans_commit();
+            if ($this->cb->trans_status() === TRUE) {
+                $this->cb->trans_commit();
                 $this->session->set_flashdata('message_name', 'Financial entry telah disetujui!');
             } else {
-                $this->db->trans_rollback();
+                $this->cb->trans_rollback();
                 $this->session->set_flashdata('message_error', 'Gagal setujui financial entry. Silahkan coba lagi');
             }
         } else {
@@ -549,13 +549,13 @@ class Financial extends CI_Controller
                 'rejected_by' => $nip,
             ];
 
-            $this->db->trans_begin();
+            $this->cb->trans_begin();
 
             if ($this->m_invoice->update_fe($data, $slug)) {
-                $this->db->trans_commit();
+                $this->cb->trans_commit();
                 $this->session->set_flashdata('message_name', 'Financial entry telah ditolak!');
             } else {
-                $this->db->trans_rollback();
+                $this->cb->trans_rollback();
                 $this->session->set_flashdata('message_error', 'Gagal reject financial entry.');
             }
 
@@ -575,12 +575,12 @@ class Financial extends CI_Controller
         if (!$this->input->post()) {
             $this->session->set_flashdata('message_error', 'Gagal Input');
         } else {
-            $this->db->trans_begin();
+            $this->cb->trans_begin();
             if ($this->posting($coa_debit, $coa_kredit, $keterangan, $nominal, $tanggal)) {
-                $this->db->trans_commit();
+                $this->cb->trans_commit();
                 $this->session->set_flashdata('message_name', 'Financial entry berhasil disetujui.');
             } else {
-                $this->db->trans_rollback();
+                $this->cb->trans_rollback();
                 $this->session->set_flashdata('message_error', 'Financial entry gagal disetujui.');
             }
         }
@@ -740,12 +740,12 @@ class Financial extends CI_Controller
             'status_pendapatan' => '1'
         ];
 
-        $this->db->trans_begin();
+        $this->cb->trans_begin();
 
         $id_invoice = $this->m_invoice->insert($invoice_data);
 
         if (!$id_invoice) {
-            $this->db->trans_rollback();
+            $this->cb->trans_rollback();
             $this->session->set_flashdata('message_name', 'Gagal membuat invoice.');
             redirect("financial/invoice");
             return;
@@ -779,7 +779,7 @@ class Financial extends CI_Controller
                 $insert = $this->m_invoice->insert_batch($detail_data);
 
                 if (!$insert) {
-                    $this->db->trans_rollback();  // Rollback transaksi jika gagal
+                    $this->cb->trans_rollback();  // Rollback transaksi jika gagal
                     $this->session->set_flashdata('message_name', 'Gagal menyimpan detail invoice.');
                     redirect("financial/invoice");
                     return;
@@ -795,11 +795,11 @@ class Financial extends CI_Controller
                 $coa_kredit = "2106009";
                 $this->posting($coa_debit, $coa_kredit, $keterangan, $besaran_ppn, $tgl_invoice);
 
-                $this->db->trans_commit();  // Commit transaksi jika semua berhasil
+                $this->cb->trans_commit();  // Commit transaksi jika semua berhasil
                 $this->session->set_flashdata('message_name', 'The invoice has been successfully created. ' . $no_inv);
                 redirect("financial/invoice");
             } else {
-                $this->db->trans_rollback();  // Rollback jika tidak ada detail yang disimpan
+                $this->cb->trans_rollback();  // Rollback jika tidak ada detail yang disimpan
                 $this->session->set_flashdata('message_name', 'Gagal membuat detail invoice.');
                 redirect("financial/invoice");
             }
@@ -947,7 +947,7 @@ class Financial extends CI_Controller
             'nominal_pendapatan' => $inv['nominal_pendapatan'],
         ];
 
-        $this->db->trans_begin();
+        $this->cb->trans_begin();
 
         // Versi jika menjadi PAD saat pembuatan invoice
         // J1: 4101001 - PAD berkurang sebesar nominal pendapatan, Pendapatan bertambah sebesar nominal pendapatan
@@ -981,10 +981,10 @@ class Financial extends CI_Controller
         ];
 
         if ($this->m_invoice->update_invoice($inv['Id'], $data_invoice)) {
-            $this->db->trans_commit();
+            $this->cb->trans_commit();
             $this->session->set_flashdata('message_name', 'The invoice has been successfully updated. Invoice status: PAID' . $no_inv);
         } else {
-            $this->db->trans_rollback();
+            $this->cb->trans_rollback();
             $this->session->set_flashdata('message_error', 'Gagal proses bayar invoice.');
         }
 
@@ -1344,13 +1344,13 @@ class Financial extends CI_Controller
             'slug' => $slug,
         ];
 
-        $this->db->trans_begin();
+        $this->cb->trans_begin();
 
         if ($this->m_coa->simpanLaporan($insert)) {
-            $this->db->trans_commit();
+            $this->cb->trans_commit();
             $this->session->set_flashdata('message_name', 'Laporan neraca berhasil disimpan.');
         } else {
-            $this->db->trans_rollback();
+            $this->cb->trans_rollback();
             $this->session->set_flashdata('message_error', 'Laporan neraca gagal tersimpan.');
         }
 
@@ -1400,13 +1400,13 @@ class Financial extends CI_Controller
             'slug' => $slug,
         ];
 
-        $this->db->trans_begin();
+        $this->cb->trans_begin();
 
         if ($this->m_coa->simpanLaporan($insert)) {
-            $this->db->trans_commit();
+            $this->cb->trans_commit();
             $this->session->set_flashdata('message_name', 'Laporan laba rugi berhasil disimpan.');
         } else {
-            $this->db->trans_rollback();
+            $this->cb->trans_rollback();
             $this->session->set_flashdata('message_error', 'Laporan laba rugi gagal tersimpan.');
         }
 
@@ -1573,7 +1573,7 @@ class Financial extends CI_Controller
             'tanggal_void' => $tgl_void
         ];
 
-        $this->db->trans_begin();
+        $this->cb->trans_begin();
 
         if ($inv) {
             // update 24 Juni 2024 jam 17:07
@@ -1590,10 +1590,10 @@ class Financial extends CI_Controller
             $this->posting($coa_debit, $coa_kredit, $keterangan, $nominal_pendapatan, $tgl_void);
 
             if ($this->m_invoice->update_invoice($inv['Id'], $data_void)) {
-                $this->db->trans_commit();
+                $this->cb->trans_commit();
                 $this->session->set_flashdata('message_name', 'The invoice has been successfully void. ' . $no_inv);
             } else {
-                $this->db->trans_rollback();
+                $this->cb->trans_rollback();
                 $this->session->set_flashdata('message_error', 'Failed void invoice.');
             }
 
@@ -1719,16 +1719,16 @@ class Financial extends CI_Controller
             }
 
 
-            $this->db->trans_begin();
+            $this->cb->trans_begin();
 
             $query = $this->cb->insert($tabel, $data);
 
             if ($query) {
-                $this->db->trans_commit();
+                $this->cb->trans_commit();
                 $this->session->set_flashdata('message_name', 'CoA ' . $no_sbb . ' berhasil ditambahkan.');
                 redirect($_SERVER['HTTP_REFERER']);
             } else {
-                $this->db->trans_rollback();
+                $this->cb->trans_rollback();
                 $this->session->set_flashdata('message_error', 'CoA ' . $no_sbb . ' gagal disimpan. Ket:' . $this->cb->error());
                 redirect($_SERVER['HTTP_REFERER']);
             }
@@ -1852,24 +1852,24 @@ class Financial extends CI_Controller
 
         if (!$cek) {
 
-            $this->db->trans_begin();
+            $this->cb->trans_begin();
 
             if ($this->m_coa->insert_saldo_awal($data)) {
-                $this->db->trans_commit();
+                $this->cb->trans_commit();
                 $this->session->set_flashdata('message_name', 'Closing bulan ' . format_indo($periode) . 'Saldo awal periode ' . format_indo($nextMonth) . ' berhasil ditetapkan');
             } else {
-                $this->db->trans_rollback();
+                $this->cb->trans_rollback();
                 $this->session->set_flashdata('message_error', 'Gagal buat closing EoM. Silahkan coba lagi.');
             }
         } else {
 
-            $this->db->trans_begin();
+            $this->cb->trans_begin();
 
             if ($this->m_coa->update_saldo_awal($periode, $data)) {
-                $this->db->trans_commit();
+                $this->cb->trans_commit();
                 $this->session->set_flashdata('message_name', 'Closing bulan ' . format_indo($periode) . 'Saldo awal periode ' . format_indo($nextMonth) . ' berhasil ditetapkan');
             } else {
-                $this->db->trans_rollback();
+                $this->cb->trans_rollback();
                 $this->session->set_flashdata('message_error', 'Gagal buat closing EoM. Silahkan coba lagi.');
             }
         }
@@ -2157,6 +2157,12 @@ class Financial extends CI_Controller
         $periode = $date->format('Y-m');
 
         $cek = $this->m_coa->cek_saldo_awal($periode);
+
+        $data['total_pendapatan'] = 0;
+        $data['sum_biaya'] = 0;
+        $data['biaya'] = [];
+        $data['sum_pendapatan'] = 0;
+        $data['pendapatan'] = [];
 
         if ($cek) {
             $coaLastPeriod = json_decode($cek['coa']);
@@ -2775,5 +2781,135 @@ class Financial extends CI_Controller
         } else {
             $this->load->view('index', $data);
         }
+    }
+
+
+
+    public function proses_penihilan()
+    {
+        $get_pendapatan = $this->cb->where(['posisi' => 'PASIVA', 'nominal !=' => '0'])->get('t_coalr_sbb')->result();
+        $get_beban = $this->cb->where(['posisi' => 'AKTIVA', 'nominal !=' => '0'])->get('t_coalr_sbb')->result();
+
+        $coa_laba_ditahan = "3102001";
+        $id_laba_ditahan = $this->cb->where('no_sbb', $coa_laba_ditahan)->get('t_coa_sbb')->row_array()['Id'] ?? null;
+
+        if (!$id_laba_ditahan) {
+            $this->session->set_flashdata('error_message', 'COA laba ditahan tidak ditemukan.');
+            redirect('financial/closing');
+            return;
+        }
+
+        $tanggal = $this->input->post('tanggal_transaksi');
+        // print_r($tanggal);
+        // exit;
+        $nip = $this->session->userdata('nip');
+        $kode_cabang = $this->session->userdata('kode_cabang');
+        // $id_invoice = null;
+
+        $this->cb->trans_start();
+
+        // PENIHILAN PENDAPATAN
+        foreach ($get_pendapatan as $gp) {
+            $coa_debit = $gp->no_lr_sbb;
+            if (!$coa_debit) continue;
+
+            $id_debit = $gp->Id;
+            $nominal = $gp->nominal;
+
+            $debit = $this->m_coa->cek_coa($coa_debit);
+            $kredit = $this->m_coa->cek_coa($coa_laba_ditahan);
+
+            if (!$debit || !$kredit || !isset($debit['posisi']) || !isset($kredit['posisi'])) continue;
+
+            $operator_debit = ($debit['posisi'] == "AKTIVA") ? '+' : '-';
+            $operator_kredit = ($kredit['posisi'] == "AKTIVA") ? '-' : '+';
+
+            $this->m_coa->update_nominal_coa_new($id_debit, $nominal, 't_coalr_sbb', $operator_debit);
+            $this->m_coa->update_nominal_coa_new($id_laba_ditahan, $nominal, 't_coa_sbb', $operator_kredit);
+
+            $saldo_debit_baru = $this->m_coa->get_nominal($id_debit, 'Id', 't_coalr_sbb');
+            $saldo_kredit_baru = $this->m_coa->get_nominal($id_laba_ditahan, 'Id', 't_coa_sbb');
+
+            $this->m_coa->addJurnal([
+                'tanggal' => $tanggal,
+                'akun_debit' => $coa_debit,
+                'jumlah_debit' => $nominal,
+                'akun_kredit' => $coa_laba_ditahan,
+                'jumlah_kredit' => $nominal,
+                'saldo_debit' => $saldo_debit_baru,
+                'saldo_kredit' => $saldo_kredit_baru,
+                'keterangan' => "PENIHILAN PENDAPATAN SECARA SISTEM",
+                'created_by' => $nip,
+                // 'id_invoice' => $id_invoice ?? '',
+                'cabang' => $kode_cabang
+            ]);
+
+            $this->m_coa->add_transaksi([
+                'user_id' => $nip,
+                'tgl_trs' => date('Y-m-d H:i:s'),
+                'nominal' => $nominal,
+                'debet' => $coa_debit,
+                'kredit' => $coa_laba_ditahan,
+                'keterangan' => "PENIHILAN PENDAPATAN SECARA SISTEM",
+                // 'id_cabang' => $kode_cabang
+            ]);
+        }
+
+        // PENIHILAN BEBAN
+        foreach ($get_beban as $gp) {
+            $coa_kredit = $gp->no_lr_sbb;
+            if (!$coa_kredit) continue;
+
+            $id_kredit = $gp->Id;
+            $nominal = $gp->nominal;
+
+            $debit = $this->m_coa->cek_coa($coa_laba_ditahan);
+            $kredit = $this->m_coa->cek_coa($coa_kredit);
+
+            if (!$debit || !$kredit || !isset($debit['posisi']) || !isset($kredit['posisi'])) continue;
+
+            $operator_debit = ($debit['posisi'] == "AKTIVA") ? '+' : '-';
+            $operator_kredit = ($kredit['posisi'] == "AKTIVA") ? '-' : '+';
+
+            $this->m_coa->update_nominal_coa_new($id_laba_ditahan, $nominal, 't_coa_sbb', $operator_debit);
+            $this->m_coa->update_nominal_coa_new($id_kredit, $nominal, 't_coalr_sbb', $operator_kredit);
+
+            $saldo_debit_baru = $this->m_coa->get_nominal($coa_laba_ditahan, 'no_sbb', 't_coa_sbb');
+            $saldo_kredit_baru = $this->m_coa->get_nominal($coa_kredit, 'no_lr_sbb', 't_coalr_sbb');
+
+            $this->m_coa->addJurnal([
+                'tanggal' => $tanggal,
+                'akun_debit' => $coa_laba_ditahan,
+                'jumlah_debit' => $nominal,
+                'akun_kredit' => $coa_kredit,
+                'jumlah_kredit' => $nominal,
+                'saldo_debit' => $saldo_debit_baru,
+                'saldo_kredit' => $saldo_kredit_baru,
+                'keterangan' => "PENIHILAN BEBAN SECARA SISTEM",
+                'created_by' => $nip,
+                // 'id_invoice' => $id_invoice ?? '',
+                'cabang' => $kode_cabang
+            ]);
+
+            $this->m_coa->add_transaksi([
+                'user_id' => $nip,
+                'tgl_trs' => date('Y-m-d H:i:s'),
+                'nominal' => $nominal,
+                'debet' => $coa_laba_ditahan,
+                'kredit' => $coa_kredit,
+                'keterangan' => "PENIHILAN BEBAN SECARA SISTEM",
+                // 'id_cabang' => $kode_cabang
+            ]);
+        }
+
+        $this->cb->trans_complete();
+
+        if ($this->cb->trans_status() === FALSE) {
+            $this->session->set_flashdata('message_error', 'Gagal melakukan proses penihilan.');
+        } else {
+            $this->session->set_flashdata('message_name', 'Berhasil');
+        }
+
+        redirect('financial/closing');
     }
 }

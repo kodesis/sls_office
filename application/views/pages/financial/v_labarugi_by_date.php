@@ -57,18 +57,20 @@
                                     </thead>
                                     <tbody>
                                         <?php
-                                        foreach ($biaya as $a) :
-                                            $coa = $this->m_coa->getCoa($a->no_sbb);
+                                        if ($biaya) {
+                                            foreach ($biaya as $a) :
+                                                $coa = $this->m_coa->getCoa($a->no_sbb);
 
-                                            if ($coa['table_source'] == "t_coalr_sbb" && $coa['posisi'] == 'AKTIVA') { ?>
-                                                <tr>
-                                                    <td><button class="bg-blue arus_kas" data-id="<?= $a->no_sbb ?>"><?= $a->no_sbb ?></td>
-                                                    <td><?= $coa['nama_perkiraan'] ?></td>
-                                                    <td class="text-right"><?= number_format($a->saldo_awal) ?></td>
-                                                </tr>
+                                                if ($coa['table_source'] == "t_coalr_sbb" && $coa['posisi'] == 'AKTIVA' && (number_format($a->saldo_awal) != 0)) { ?>
+                                                    <tr>
+                                                        <td><button class="bg-blue arus_kas" data-id="<?= $a->no_sbb ?>"><?= $a->no_sbb ?></td>
+                                                        <td><?= $coa['nama_perkiraan'] ?></td>
+                                                        <td class="text-right"><?= number_format($a->saldo_awal) ?></td>
+                                                    </tr>
                                         <?php
-                                            }
-                                        endforeach; ?>
+                                                }
+                                            endforeach;
+                                        } ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -92,7 +94,7 @@
                                         foreach ($pendapatan as $a) :
                                             $coa = $this->m_coa->getCoa($a->no_sbb);
 
-                                            if ($coa['table_source'] == "t_coalr_sbb" && $coa['posisi'] == 'PASIVA') { ?>
+                                            if ($coa['table_source'] == "t_coalr_sbb" and $coa['posisi'] == 'PASIVA' && (number_format($a->saldo_awal) != 0)) { ?>
                                                 <tr>
                                                     <td><button class="bg-blue arus_kas" data-id="<?= $a->no_sbb ?>"><?= $a->no_sbb ?></td>
                                                     <td><?= $coa['nama_perkiraan'] ?></td>

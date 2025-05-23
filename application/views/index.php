@@ -310,25 +310,95 @@
 				}
 			}
 		});
-		const flashdata = $(".flash-data").data("flashdata");
-		if (flashdata) {
+		<?php
+		if ($this->session->flashdata('message_name')) {
+		?>
 			Swal.fire({
 				title: "Success!! ",
 				text: '<?= $this->session->flashdata('message_name') ?>',
 				type: "success",
 				icon: "success",
 			});
-		}
+		<?php
+			// $this->session->sess_destroy('message_name');
+			unset($_SESSION['message_name']);
+		} ?>
 
-		const flashdata_error = $(".flash-data-error").data("flashdata");
-		if (flashdata_error) {
+		<?php
+		if ($this->session->flashdata('message_error')) {
+		?>
 			Swal.fire({
 				title: "Error!! ",
-				text: flashdata_error,
+				text: '<?= $this->session->flashdata('message_error') ?>',
 				type: "error",
 				icon: "error",
 			});
-		}
+		<?php
+			// $this->session->sess_destroy('message_error');
+			unset($_SESSION['message_error']);
+		} ?>
+
+		$(document).on('click', '.click-process', function(e) {
+			e.preventDefault();
+			const $submitBtn = $(this);
+			$submitBtn.prop('disabled', true);
+
+			function generateRandomCode(length) {
+				let code = '';
+				let characters = '0123456789';
+				for (let i = 0; i < length; i++) {
+					code += characters.charAt(Math.floor(Math.random() * characters.length));
+				}
+				return code;
+			}
+
+			const randomCode = generateRandomCode(6);
+
+			Swal.fire({
+				title: 'Konfirmasi Pembayaran',
+				html: `Masukkan kode konfirmasi berikut untuk melanjutkan: <strong>${randomCode}</strong><br><small>Silakan tunggu 10 detik sebelum tombol konfirmasi aktif...</small>`,
+				input: 'text',
+				inputPlaceholder: 'Masukkan kode konfirmasi',
+				showCancelButton: true,
+				confirmButtonText: 'Konfirmasi',
+				cancelButtonText: 'Batal',
+				didOpen: () => {
+					const confirmBtn = Swal.getConfirmButton();
+					confirmBtn.disabled = true;
+
+					setTimeout(() => {
+						confirmBtn.disabled = false;
+					}, 10000); // Tombol aktif setelah 10 detik
+				},
+				preConfirm: (inputValue) => {
+					if (!inputValue) {
+						Swal.showValidationMessage('Kode konfirmasi tidak boleh kosong!');
+					} else if (inputValue !== randomCode) {
+						Swal.showValidationMessage('Kode konfirmasi salah!');
+					} else {
+						return inputValue;
+					}
+				}
+			}).then((result) => {
+				if (result.isConfirmed) {
+					// Delay 10 detik sebelum form diproses otomatis
+					Swal.fire({
+						title: 'Memproses...',
+						text: 'Mohon tunggu sebentar...',
+						allowOutsideClick: false,
+						didOpen: () => {
+							Swal.showLoading();
+						}
+					});
+
+					setTimeout(() => {
+						$('form').submit();
+					}, 10000);
+				} else {
+					$submitBtn.prop('disabled', false);
+				}
+			});
+		});
 	</script>
 </body>
 

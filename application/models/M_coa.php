@@ -18,6 +18,21 @@ class M_coa extends CI_Model
         return $this->cb->where($kolom, $no_coa)->update($tabel, $data);
     }
 
+    public function update_nominal_coa_new($id, $nominal, $tabel, $operator)
+    {
+        $this->cb->set('nominal', "nominal {$operator} {$nominal}", false);
+        $this->cb->where('Id', $id);
+        $this->cb->update($tabel);
+    }
+
+    function get_nominal($no_coa, $kolom, $tabel)
+    {
+        return $this->cb->select('nominal')
+            ->where($kolom, $no_coa)
+            ->get($tabel)
+            ->row('nominal');
+    }
+
     public function add_transaksi($data)
     {
         return $this->cb->insert('t_log_transaksi', $data);

@@ -7,15 +7,33 @@
             <div class="x_panel card">
                 <div class="x_content">
                     <div class="row">
-                        <form class="form-horizontal form-label-left" method="POST" action="<?= base_url('financial/save_saldo_awal') ?>">
-                            <div class="col-md-3 col-xs-12 mt-3">
-                                <input type="text" class="form-control datepicker" data-date-format="mm/yyyy" id="periode" name="periode" value="<?= $this->input->post('periode') ?>">
-                            </div>
-                            <div class="col-md-1 col-xs-12 mt-3 text-right">
-                                <button type="submit" class="btn btn-primary">Closing EoM</button>
-                            </div>
-                        </form>
+                        <div class="col-md-6 col-xs-12">
+                            <form class="form-horizontal form-label-left" method="POST" action="<?= base_url('financial/save_saldo_awal') ?>">
+                                <div class="row">
+                                    <div class="col-md-7 col-xs-12 mt-3">
+                                        <input type="text" class="form-control datepicker" data-date-format="mm/yyyy" id="periode" name="periode" value="<?= $this->input->post('periode') ?>">
+                                    </div>
+                                    <div class="col-md-5 col-xs-12 mt-3 text-right">
+                                        <button type="submit" class="btn btn-primary">Closing EoM</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="col-md-6 col-xs-12 text-right">
+                            <form class="form-horizontal form-label-left" method="POST" action="<?= base_url('financial/proses_penihilan') ?>">
+                                <div class="row">
+                                    <div class="col-md-7 col-xs-12 mt-3">
+                                        <input type="date" class="form-control datepicker" id="tanggal_transaksi" name="tanggal_transaksi" value="<?= $this->input->post('tanggal_transaksi') ?>">
+                                    </div>
+                                    <div class="col-md-5 col-xs-12 mt-3 text-right">
+                                        <button type="submit" class="btn btn-danger click-process">Proses Penihilan</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
+
                     <div class="table-responsive mt-3">
                         <table id="" class="table table-stripped" style="width:100%">
                             <thead>
