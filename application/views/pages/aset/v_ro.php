@@ -88,15 +88,10 @@
                           <div>
                             <label for="uoi" class="form-label">UOI</label>
                           </div>
-                          <select name="uoi_out[]" id="uoi" class="form-control">
-                            <option value="PCS">PCS</option>
-                            <option value="SET">SET</option>
-                            <option value="LITER">LITER</option>
-                            <option value="TABUNG">TABUNG</option>
-                            <option value="DRUM">DRUM</option>
-                            <option value="GALON">GALON</option>
-                            <option value="LUSIN">LUSIN</option>
-                            <option value="KG">KG</option>
+                          <select name="uoi[]" id="uoi" class="form-control uoi select2">
+                            <?php foreach ($uoi as $u) : ?>
+                              <option value="<?= $u->satuan ?>"><?= $u->satuan ?></option>
+                            <?php endforeach ?>
                           </select>
                         </div>
                       </td>
@@ -193,15 +188,10 @@
                           <div>
                             <label for="uoi" class="form-label">UOI</label>
                           </div>
-                          <select name="uoi_out[]" id="uoi-<?= $i ?>" class="form-control">
-                            <option value="PCS">PCS</option>
-                            <option value="SET">SET</option>
-                            <option value="LITER">LITER</option>
-                            <option value="TABUNG">TABUNG</option>
-                            <option value="DRUM">DRUM</option>
-                            <option value="GALON">GALON</option>
-                            <option value="LUSIN">LUSIN</option>
-                            <option value="KG">KG</option>
+                          <select name="uoi[]" id="uoi-<?= $rd['Id'] ?>" class="form-control uoi select2">
+                            <?php foreach ($uoi as $u) : ?>
+                              <option value="<?= $u->satuan ?>" <?= $rd['uoi'] == $u->satuan ? 'selected' : '' ?>><?= $u->satuan ?></option>
+                            <?php endforeach ?>
                           </select>
                         </div>
                       </td>
@@ -260,15 +250,27 @@
       var row = $(this).parents().closest('tr');
       var newId = Date.now();
 
-      row.find("select.asset").each(function(index, value) {
+      row.find("select.select2").each(function(index, value) {
         $(this).select2('destroy');
       });
 
-      row.find("select.item-out").each(function(index, value) {
-        $(this).select2('destroy');
-      });
+      // row.find("select.asset").each(function(index, value) {
+      //   $(this).select2('destroy');
+      // });
+
+      // row.find("select.item-out").each(function(index, value) {
+      //   $(this).select2('destroy');
+      // });
       // Membuat baris baru
       var newRow = row.clone();
+
+      newRow.find('select.uoi').each(function(index, value) {
+        $(this).val('');
+        $(this).attr('id', 'uoi-' + newId)
+        $(this).select2({
+          width: "100%"
+        })
+      })
 
       newRow.find('select.asset').each(function(index, value) {
         $(this).val('');
@@ -300,8 +302,10 @@
       })
 
       newRow.insertAfter(row);
-      $("select.asset").select2();
-      $("select.item-out").select2();
+      // $("select.asset").select2();
+      // $("select.item-out").select2();
+      // $("select.uoi").select2();
+      setSelect2();
       updateTotalItemOut();
       get_detail_item()
     })
