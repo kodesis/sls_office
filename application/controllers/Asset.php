@@ -323,8 +323,17 @@ class Asset extends CI_Controller
 
 		$user = $this->db->get_where('users', ['nip' => $this->session->userdata('nip')])->row_array();
 		$i = 0;
+		$ws = [];
+		$update = [];
+		$update_po_detail = [];
 		foreach ($detail as $d) {
-			$item[] = $this->db->get_where('item_list', ['Id' => $d['item']])->row_array();
+			$query = $this->db->query(
+				"SELECT * FROM item_list WHERE Id = ? FOR UPDATE",
+				[$d['item']]
+			);
+			$item[] = $query->row_array();
+			// $item[] = $this->db->get_where('item_list', ['Id' => $d['item']])->row_array();
+
 			$item_list_jumlah[] = $item[$i]['stok'];
 			$item_list_hargasat[] = $item[$i]['harga_sat'];
 
@@ -336,11 +345,11 @@ class Asset extends CI_Controller
 			$harga[] = ($price[$i]) + ($item_list_jumlah[$i] * $item_list_hargasat[$i]);
 			$harga_baru[] = $harga[$i] / $total[$i];
 
-			$ws = [
+			$ws[] = [
 				'no_po' => $po['Id'],
 				'item_id' => $d['item'],
 				'harga' => $harga_baru[$i],
-				'jml' => $d['qty'],
+				'jml' => $jml[$i],
 				'stok_awal' => $item_list_jumlah[$i],
 				'stok_akhir' => $total[$i],
 				'user' => $user['nip'],
@@ -348,30 +357,44 @@ class Asset extends CI_Controller
 				'keterangan' => $po['referensi']
 			];
 
-			$this->db->insert('working_supply', $ws);
-
-			$update = [
+			$update[] = [
+				'Id' => $item[$i]['Id'],
 				'stok' => $total[$i],
 				'harga_sat' => $harga_baru[$i]
 			];
 
-			$this->db->where('Id', $item[$i]['Id']);
-			$this->db->update('item_list', $update);
-
-			$this->cb->where('Id', $item[$i]['Id']);
-			$this->cb->update('t_po_detail', ['status_add' => 1]);
+			$update_po_detail[] = [
+				'Id' => $item[$i]['Id'],
+				'status_add' => 1
+			];
 
 			$i++;
 		}
 
+
+		$this->db->insert_batch('working_supply', $ws);
+		$this->db->update_batch('item_list', $update, 'Id');
+		$this->cb->update_batch('t_po_detail', $update_po_detail, 'Id');
+
 		$this->cb->where('Id', $id);
 		$this->cb->update('t_po', ['posisi' => 'Item PO sudah ditambahkan']);
 
-		$response = [
-			'success' => true,
-			'status' => '200',
-			'msg' => 'Data item berhasil ditambahkan!'
-		];
+		$this->cb->trans_complete();
+		$this->db->trans_complete();
+
+		if ($this->cb->trans_status() === FALSE or $this->db->trans_status() == FALSE) {
+			$this->cb->trans_rollback();
+			$this->db->trans_rollback();
+		} else {
+			$this->cb->trans_commit();
+			$this->db->trans_commit();
+
+			$response = [
+				'success' => true,
+				'status' => '200',
+				'msg' => 'Data item berhasil ditambahkan!'
+			];
+		}
 
 		echo json_encode($response, http_response_code($response['status']));
 	}
@@ -444,6 +467,7 @@ class Asset extends CI_Controller
 				$data['vendors'] = $this->db->get('t_vendors');
 				$data['title'] = "Create PO";
 				$data['pages'] = "pages/aset/v_po";
+				$data['uoi'] = $this->db->get('t_satuan')->result();
 				$this->load->view('index', $data);
 			} else {
 				redirect('home');
@@ -474,6 +498,7 @@ class Asset extends CI_Controller
 			$data['po'] = $this->cb->get_where('t_po', ['Id' => $id])->row_array();
 			$data['title'] = "Create PO";
 			$data['pages'] = "pages/aset/v_po";
+			$data['uoi'] = $this->db->get('t_satuan')->result();
 			$this->load->view('index', $data);
 		} else {
 			redirect('home');
@@ -1607,135 +1632,76 @@ class Asset extends CI_Controller
 						'msg' => $this->upload->display_errors()
 					];
 				} else {
+					$this->db->trans_start();
+					$this->cb->trans_start();
 					$upload = $this->upload->data();
+					$jurnal = [];
+					$po_detail_update = [];
 					for ($i = 0; $i < count($rows); $i++) {
 						$po_detail[] = $this->cb->get_where('t_po_detail', ['Id' => $id_item[$i]])->row_array();
 						$item[] = $this->db->get_where('item_list', ['Id' => $po_detail[$i]['item']])->row_array();
+
 						// Update coa debit
-						$detail_coa_debit[] = $this->cb->get_where('v_coa_all', ['no_sbb' => $coa_debit[$i]])->row_array();
-						$posisi_debit[] = $detail_coa_debit[$i]['posisi'];
-						$nominal_debit[] = $detail_coa_debit[$i]['nominal'];
-						$substr_coa_debit[] = substr($coa_debit[$i], 0, 1);
-						$nominal_debit_baru[] = 0;
+						$this->update_saldo_coa($coa_debit[$i], $po_detail[$i]['total'], 'debit');
 
-						if ($posisi_debit[$i] == "AKTIVA") {
-							$nominal_debit_baru[$i] = $nominal_debit[$i] + $po_detail[$i]['total'];
-						}
+						// Update coa kredit
+						$this->update_saldo_coa($coa_kredit, $po_detail[$i]['total'], 'kredit');
 
-						if ($posisi_debit[$i] == "PASIVA") {
-							$nominal_debit_baru[$i] = $nominal_debit[$i] - $po_detail[$i]['total'];
-						}
+						// Ambil saldo terbaru dari coa_sbb untuk akun debit
+						$saldo_debit = $this->get_saldo_coa($coa_debit[$i]);
 
-						if ($substr_coa_debit[$i] == "1" || $substr_coa_debit[$i] == "2" || $substr_coa_debit[$i] == "3") {
-							$table_debit[] = "t_coa_sbb";
-							$kolom_debit[] = "no_sbb";
-						}
-						if ($substr_coa_debit[$i] == "4" || $substr_coa_debit[$i] == "5" || $substr_coa_debit[$i] == "6" || $substr_coa_debit[$i] == "7" || $substr_coa_debit[$i] == "8" || $substr_coa_debit[$i] == "9") {
-							$table_debit[] = "t_coalr_sbb";
-							$kolom_debit[] = "no_lr_sbb";
-						}
-
-						$this->cb->where([$kolom_debit[$i] => $coa_debit[$i]]);
-						$this->cb->update($table_debit[$i], ['nominal' => $nominal_debit_baru[$i]]);
-
-
-						// update coa credit
-						$detail_coa_credit[] = $this->cb->get_where('v_coa_all', ['no_sbb' => $coa_kredit])->row_array();
-						$posisi_credit[] = $detail_coa_credit[$i]['posisi'];
-						$nominal_credit[] = $detail_coa_credit[$i]['nominal'];
-						$substr_coa_credit[] = substr($coa_kredit, 0, 1);
-						$saldo_credit_baru[] = 0;
-						$nominal_credit_baru[] = 0;
-
-						if ($posisi_credit[$i] == "AKTIVA") {
-							$nominal_credit_baru[$i] = $nominal_credit[$i] - $po_detail[$i]['total'];
-						}
-						if ($posisi_credit[$i] == "PASIVA") {
-							$nominal_credit_baru[$i] = $nominal_credit[$i] + $po_detail[$i]['total'];
-						}
-
-						if ($substr_coa_credit[$i] == "1" || $substr_coa_credit[$i] == "2" || $substr_coa_credit[$i] == "3") {
-							$table_credit[] = "t_coa_sbb";
-							$kolom_credit[] = "no_sbb";
-						}
-
-						if ($substr_coa_credit[$i] == "4" || $substr_coa_credit[$i] == "5" || $substr_coa_credit[$i] == "6" || $substr_coa_credit[$i] == "7" || $substr_coa_credit[$i] == "8" || $substr_coa_credit[$i] == "9") {
-							$table_credit[] = "t_coalr_sbb";
-							$kolom_credit[] = "no_lr_sbb";
-						}
-
-						$this->cb->where([$kolom_credit[$i] => $coa_kredit]);
-						$this->cb->update($table_credit[$i], ['nominal' => $nominal_credit_baru[$i]]);
+						// Ambil saldo terbaru dari coa_sbb untuk akun kredit
+						$saldo_kredit = $this->get_saldo_coa($coa_kredit);
 
 						// update table pengajuan detail
-						$this->cb->where('Id', $id_item[$i]);
-						$this->cb->update('t_po_detail', [
+						$po_detail_update[] = [
+							'Id' => $id_item[$i],
 							'kredit' => $coa_kredit,
 							'debit' => $coa_debit[$i]
-						]);
+						];
 
 						// create jurnal
-						$jurnal = [
+						$jurnal[] = [
 							'tanggal' => $date_bayar,
 							'akun_debit' => $coa_debit[$i],
 							'jumlah_debit' => $po_detail[$i]['total'],
 							'akun_kredit' => $coa_kredit,
 							'jumlah_kredit' => $po_detail[$i]['total'],
-							'saldo_debit' => $nominal_debit_baru[$i],
-							'saldo_kredit' => $nominal_credit_baru[$i],
-							'keterangan' => $item[$i]['nama'],
+							'saldo_debit' => $saldo_debit,
+							'saldo_kredit' => $saldo_kredit,
+							'keterangan' => 'Purchase Order ' . $item[$i]['nama'] . ' - ' . $po['referensi'],
 							'created_by' => $this->session->userdata('nip'),
 						];
-						$this->cb->insert('jurnal_neraca', $jurnal);
 					}
 
 					if ($ppn == 1) {
 						$nominal_ppn = $po['total'] * 0.11;
 						$ppn_masukan = $this->cb->get_where('v_coa_all', ['no_sbb' => '1108007'])->row_array();
-						$nominal_ppn_masukan = $ppn_masukan['nominal'];
-						$nominal_ppn_masukan_baru = $nominal_ppn_masukan + $nominal_ppn;
-						$this->cb->where('no_sbb', $ppn_masukan['no_sbb']);
-						$this->cb->update('t_coa_sbb', ['nominal' => $nominal_ppn_masukan_baru]);
 
-						$cr = $this->cb->get_where('v_coa_all', ['no_sbb' => $coa_kredit])->row_array();
-						$posisi_cr = $cr['posisi'];
-						$nominal_cr = $cr['nominal'];
-						$substr_coa_cr = substr($coa_kredit, 0, 1);
-						$nominal_cr_baru = 0;
+						// Update coa debit
+						$this->update_saldo_coa('1108007', $nominal_ppn, 'debit');
 
-						if ($posisi_cr == "AKTIVA") {
-							$nominal_cr_baru = $nominal_cr - $nominal_ppn;
-						}
-						if ($posisi_cr == "PASIVA") {
-							$nominal_cr_baru = $nominal_cr + $nominal_ppn;
-						}
+						// Update coa kredit
+						$this->update_saldo_coa($coa_kredit, $nominal_ppn, 'kredit');
 
-						if ($substr_coa_cr == "1" || $substr_coa_cr == "2" || $substr_coa_cr == "3") {
-							$table_cr = "t_coa_sbb";
-							$kolom_cr = "no_sbb";
-						}
+						// Ambil saldo terbaru dari coa_sbb untuk akun debit
+						$saldo_debit = $this->get_saldo_coa('1108007');
 
-						if ($substr_coa_cr == "4" || $substr_coa_cr == "5" || $substr_coa_cr == "6" || $substr_coa_cr == "7" || $substr_coa_cr == "8" || $substr_coa_cr == "9") {
-							$table_cr = "t_coalr_sbb";
-							$kolom_cr = "no_lr_sbb";
-						}
-
-						$this->cb->where([$kolom_cr => $coa_kredit]);
-						$this->cb->update($table_cr, ['nominal' => $nominal_cr_baru]);
+						// Ambil saldo terbaru dari coa_sbb untuk akun kredit
+						$saldo_kredit = $this->get_saldo_coa($coa_kredit);
 
 						// create jurnal
-						$jurnal = [
+						$jurnal[] = [
 							'tanggal' => $date_bayar,
 							'akun_debit' => $ppn_masukan['no_sbb'],
 							'jumlah_debit' => $nominal_ppn,
 							'akun_kredit' => $coa_kredit,
 							'jumlah_kredit' => $nominal_ppn,
-							'saldo_debit' => $nominal_ppn_masukan_baru,
-							'saldo_kredit' => $nominal_cr_baru,
+							'saldo_debit' => $saldo_debit,
+							'saldo_kredit' => $saldo_kredit,
 							'keterangan' => 'PPN MASUKAN ' . $po['no_po'],
 							'created_by' => $this->session->userdata('nip'),
 						];
-						$this->cb->insert('jurnal_neraca', $jurnal);
 					}
 
 					// Update table pengajuan
@@ -1750,146 +1716,101 @@ class Asset extends CI_Controller
 						'status_pembayaran' => 1,
 						'ppn' => $ppn
 					];
-
 					$this->cb->where(['Id' => $id]);
 					$this->cb->update('t_po', $update);
 
-					$response = [
-						'success' => true,
-						'msg' => 'PO berhasil diproses!'
-					];
+					$this->cb->insert_batch('jurnal_neraca', $jurnal);
+					$this->cb->update_batch('t_po_detail', $po_detail_update, 'Id');
+
+					$this->cb->trans_complete();
+					$this->db->trans_complete();
+
+					if ($this->cb->trans_status() === FALSE or $this->db->trans_status() == FALSE) {
+						$this->cb->trans_rollback();
+						$this->db->trans_rollback();
+					} else {
+						$this->cb->trans_commit();
+						$this->db->trans_commit();
+
+						$response = [
+							'success' => true,
+							'msg' => 'PO berhasil diproses!'
+						];
+					}
 				}
 			} else {
+				$this->cb->trans_start();
+				$this->db->trans_start();
+				$jurnal = [];
+				$po_detail_update = [];
 				for ($i = 0; $i < count($rows); $i++) {
 					$po_detail[] = $this->cb->get_where('t_po_detail', ['Id' => $id_item[$i]])->row_array();
 					$item[] = $this->db->get_where('item_list', ['Id' => $po_detail[$i]['item']])->row_array();
 					// Update coa debit
 					// $item_detail = $this
 					// Update coa debit
-					$detail_coa_debit[] = $this->cb->get_where('v_coa_all', ['no_sbb' => $coa_debit[$i]])->row_array();
-					$posisi_debit[] = $detail_coa_debit[$i]['posisi'];
-					$nominal_debit[] = $detail_coa_debit[$i]['nominal'];
-					$substr_coa_debit[] = substr($coa_debit[$i], 0, 1);
-					$nominal_debit_baru[] = 0;
 
-					if ($posisi_debit[$i] == "AKTIVA") {
-						$nominal_debit_baru[$i] = $nominal_debit[$i] + $po_detail[$i]['total'];
-					}
+					// Update coa debit
+					$this->update_saldo_coa($coa_debit[$i], $po_detail[$i]['total'], 'debit');
 
-					if ($posisi_debit[$i] == "PASIVA") {
-						$nominal_debit_baru[$i] = $nominal_debit[$i] - $po_detail[$i]['total'];
-					}
+					// Update coa kredit
+					$this->update_saldo_coa($coa_kredit, $po_detail[$i]['total'], 'kredit');
 
-					if ($substr_coa_debit[$i] == "1" || $substr_coa_debit[$i] == "2" || $substr_coa_debit[$i] == "3") {
-						$table_debit[] = "t_coa_sbb";
-						$kolom_debit[] = "no_sbb";
-					}
-					if ($substr_coa_debit[$i] == "4" || $substr_coa_debit[$i] == "5" || $substr_coa_debit[$i] == "6" || $substr_coa_debit[$i] == "7" || $substr_coa_debit[$i] == "8" || $substr_coa_debit[$i] == "9") {
-						$table_debit[] = "t_coalr_sbb";
-						$kolom_debit[] = "no_lr_sbb";
-					}
+					// Ambil saldo terbaru dari coa_sbb untuk akun debit
+					$saldo_debit = $this->get_saldo_coa($coa_debit[$i]);
 
-					$this->cb->where([$kolom_debit[$i] => $coa_debit[$i]]);
-					$this->cb->update($table_debit[$i], ['nominal' => $nominal_debit_baru[$i]]);
-
-
-					// update coa credit
-					$detail_coa_credit[] = $this->cb->get_where('v_coa_all', ['no_sbb' => $coa_kredit])->row_array();
-					$posisi_credit[] = $detail_coa_credit[$i]['posisi'];
-					$nominal_credit[] = $detail_coa_credit[$i]['nominal'];
-					$substr_coa_credit[] = substr($coa_kredit, 0, 1);
-					$saldo_credit_baru[] = 0;
-					$nominal_credit_baru[] = 0;
-
-					if ($posisi_credit[$i] == "AKTIVA") {
-						$nominal_credit_baru[$i] = $nominal_credit[$i] - $po_detail[$i]['total'];
-					}
-					if ($posisi_credit[$i] == "PASIVA") {
-						$nominal_credit_baru[$i] = $nominal_credit[$i] + $po_detail[$i]['total'];
-					}
-
-					if ($substr_coa_credit[$i] == "1" || $substr_coa_credit[$i] == "2" || $substr_coa_credit[$i] == "3") {
-						$table_credit[] = "t_coa_sbb";
-						$kolom_credit[] = "no_sbb";
-					}
-					if ($substr_coa_credit[$i] == "4" || $substr_coa_credit[$i] == "5" || $substr_coa_credit[$i] == "6" || $substr_coa_credit[$i] == "7" || $substr_coa_credit[$i] == "8" || $substr_coa_credit[$i] == "9") {
-						$table_credit[] = "t_coalr_sbb";
-						$kolom_credit[] = "no_lr_sbb";
-					}
-
-					$this->cb->where([$kolom_credit[$i] => $coa_kredit]);
-					$this->cb->update($table_credit[$i], ['nominal' => $nominal_credit_baru[$i]]);
-
+					// Ambil saldo terbaru dari coa_sbb untuk akun kredit
+					$saldo_kredit = $this->get_saldo_coa($coa_kredit);
 
 					// update table pengajuan detail
-					$this->cb->where('Id', $id_item[$i]);
-					$this->cb->update('t_po_detail', [
+					$po_detail_update[] = [
+						'Id' => $id_item[$i],
 						'kredit' => $coa_kredit,
 						'debit' => $coa_debit[$i]
-					]);
+					];
 
 					// create jurnal
-					$jurnal = [
+					$jurnal[] = [
 						'tanggal' => $date_bayar,
 						'akun_debit' => $coa_debit[$i],
 						'jumlah_debit' => $po_detail[$i]['total'],
 						'akun_kredit' => $coa_kredit,
 						'jumlah_kredit' => $po_detail[$i]['total'],
-						'saldo_debit' => $nominal_debit_baru[$i],
-						'saldo_kredit' => $nominal_credit_baru[$i],
-						'keterangan' => $item[$i]['nama'],
+						'saldo_debit' => $saldo_debit,
+						'saldo_kredit' => $saldo_kredit,
+						'keterangan' => 'Purchase Order ' . $item[$i]['nama'] . ' - ' . $po['referensi'],
 						'created_by' => $this->session->userdata('nip'),
 					];
-					$this->cb->insert('jurnal_neraca', $jurnal);
 				}
 
 				if ($ppn == 1) {
 					$nominal_ppn = $po['total'] * 0.11;
 					$ppn_masukan = $this->cb->get_where('v_coa_all', ['no_sbb' => '1108007'])->row_array();
-					$nominal_ppn_masukan = $ppn_masukan['nominal'];
-					$nominal_ppn_masukan_baru = $nominal_ppn_masukan + $nominal_ppn;
-					$this->cb->where('no_sbb', $ppn_masukan['no_sbb']);
-					$this->cb->update('t_coa_sbb', ['nominal' => $nominal_ppn_masukan_baru]);
 
-					$cr = $this->cb->get_where('v_coa_all', ['no_sbb' => $coa_kredit])->row_array();
-					$posisi_cr = $cr['posisi'];
-					$nominal_cr = $cr['nominal'];
-					$substr_coa_cr = substr($coa_kredit, 0, 1);
-					$nominal_cr_baru = 0;
+					// Update coa debit
+					$this->update_saldo_coa('1108007', $nominal_ppn, 'debit');
 
-					if ($posisi_cr == "AKTIVA") {
-						$nominal_cr_baru = $nominal_cr - $nominal_ppn;
-					}
-					if ($posisi_cr == "PASIVA") {
-						$nominal_cr_baru = $nominal_cr + $nominal_ppn;
-					}
+					// Update coa kredit
+					$this->update_saldo_coa($coa_kredit, $nominal_ppn, 'kredit');
 
-					if ($substr_coa_cr == "1" || $substr_coa_cr == "2" || $substr_coa_cr == "3") {
-						$table_cr = "t_coa_sbb";
-						$kolom_cr = "no_sbb";
-					}
+					// Ambil saldo terbaru dari coa_sbb untuk akun debit
+					$saldo_debit = $this->get_saldo_coa('1108007');
 
-					if ($substr_coa_cr == "4" || $substr_coa_cr == "5" || $substr_coa_cr == "6" || $substr_coa_cr == "7" || $substr_coa_cr == "8" || $substr_coa_cr == "9") {
-						$table_cr = "t_coalr_sbb";
-						$kolom_cr = "no_lr_sbb";
-					}
-
-					$this->cb->where([$kolom_cr => $coa_kredit]);
-					$this->cb->update($table_cr, ['nominal' => $nominal_cr_baru]);
+					// Ambil saldo terbaru dari coa_sbb untuk akun kredit
+					$saldo_kredit = $this->get_saldo_coa($coa_kredit);
 
 					// create jurnal
-					$jurnal = [
+					$jurnal[] = [
 						'tanggal' => $date_bayar,
 						'akun_debit' => $ppn_masukan['no_sbb'],
 						'jumlah_debit' => $nominal_ppn,
 						'akun_kredit' => $coa_kredit,
 						'jumlah_kredit' => $nominal_ppn,
-						'saldo_debit' => $nominal_ppn_masukan_baru,
-						'saldo_kredit' => $nominal_cr_baru,
+						'saldo_debit' => $saldo_debit,
+						'saldo_kredit' => $saldo_kredit,
 						'keterangan' => 'PPN MASUKAN ' . $po['no_po'],
 						'created_by' => $this->session->userdata('nip'),
 					];
-					$this->cb->insert('jurnal_neraca', $jurnal);
 				}
 
 				// Update table pengajuan
@@ -1904,10 +1825,24 @@ class Asset extends CI_Controller
 				$this->cb->where(['Id' => $id]);
 				$this->cb->update('t_po', $update);
 
-				$response = [
-					'success' => true,
-					'msg' => 'PO berhasil diproses!'
-				];
+				$this->cb->insert_batch('jurnal_neraca', $jurnal);
+				$this->cb->update_batch('t_po_detail', $po_detail_update, 'Id');
+
+				$this->cb->trans_complete();
+				$this->db->trans_complete();
+
+				if ($this->cb->trans_status() === FALSE or $this->db->trans_status() == FALSE) {
+					$this->cb->trans_rollback();
+					$this->db->trans_rollback();
+				} else {
+					$this->cb->trans_commit();
+					$this->db->trans_commit();
+
+					$response = [
+						'success' => true,
+						'msg' => 'PO berhasil diproses!'
+					];
+				}
 			}
 		}
 
@@ -4667,5 +4602,65 @@ class Asset extends CI_Controller
 
 		$objWriter = PHPExcel_IOFactory::createWriter($excel, 'Excel5');
 		$objWriter->save('php://output');
+	}
+
+	private function update_saldo_coa($akun_no, $jumlah, $tipe)
+	{
+		$substr_coa = substr($akun_no, 0, 1);
+		if ($substr_coa == "1" || $substr_coa == "2" || $substr_coa == "3") {
+			$table = "t_coa_sbb";
+			$kolom = "no_sbb";
+		} else if ($substr_coa == "4" || $substr_coa == "5" || $substr_coa == "6" || $substr_coa == "7" || $substr_coa == "8" || $substr_coa == "9") {
+			$table = "t_coalr_sbb";
+			$kolom = "no_lr_sbb";
+		}
+
+		$query = $this->cb->query(
+			"SELECT posisi, nominal FROM $table WHERE " . $kolom . " = ? FOR UPDATE",
+			[$akun_no]
+		);
+
+		$row = $query->row();
+		if (!$row) return;
+
+		$posisi = $row->posisi;
+		$nominal = $row->nominal;
+
+		if ($posisi == 'AKTIVA') {
+			if ($tipe == 'debit') {
+				$nominal += $jumlah;
+			} else { // kredit
+				$nominal -= $jumlah;
+			}
+		} elseif ($posisi == 'PASIVA') {
+			if ($tipe == 'debit') {
+				$nominal -= $jumlah;
+			} else { // kredit
+				$nominal += $jumlah;
+			}
+		}
+
+		// Update saldo
+		$this->cb->where(($table == 't_coa_sbb') ? 'no_sbb' : 'no_lr_sbb', $akun_no);
+		$this->cb->update($table, ['nominal' => $nominal]);
+	}
+
+	private function get_saldo_coa($akun_no)
+	{
+		$substr_coa = substr($akun_no, 0, 1);
+		if ($substr_coa == "1" || $substr_coa == "2" || $substr_coa == "3") {
+			$table = "t_coa_sbb";
+			$kolom = "no_sbb";
+		} else if ($substr_coa == "4" || $substr_coa == "5" || $substr_coa == "6" || $substr_coa == "7" || $substr_coa == "8" || $substr_coa == "9") {
+			$table = "t_coalr_sbb";
+			$kolom = "no_lr_sbb";
+		}
+
+		$row = $this->cb->select('nominal')
+			->where($kolom, $akun_no)
+			->get($table)
+			->row();
+
+		return $row->nominal;
 	}
 }
